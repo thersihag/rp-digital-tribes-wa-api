@@ -1,0 +1,22 @@
+{
+  "name": "RP-Tribe-whatsapp-gateway",
+  "version": "2.0.0",
+  "description": "Enterprise Multi-Instance Bulk WhatsApp Gateway",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.6.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "pino": "^9.1.0",
+    "qrcode": "^1.5.3"
+  },
+  "author": "RP Tribe",
+  "license": "ISC"
+}
