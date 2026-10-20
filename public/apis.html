@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message APIs - RP Digital Trend</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
+
+<!-- Gatekeeper API Block Prompt Modal -->
+<div id="gatekeeperModal" class="fixed inset-0 bg-slate-950/95 z-50 flex items-center justify-center p-6 transition-all duration-300">
+    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden">
+        <div class="absolute -top-10 -left-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl"></div>
+        
+        <div class="bg-emerald-600/10 p-4 rounded-2xl inline-block mb-6 border border-emerald-500/20">
+            <i class="fas fa-key text-4xl text-emerald-400"></i>
+        </div>
+        
+        <h2 class="text-2xl font-bold mb-1 text-white">RP Digital Trend API</h2>
+        <p class="text-slate-400 text-sm mb-6">Enter your Active Session ID to load dynamic webhook builders and message sending links.</p>
+        
+        <div class="space-y-4">
+            <div class="relative">
+                <i class="fas fa-fingerprint absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                <input type="text" id="initialSessionInput" placeholder="Enter Session ID (e.g., default, rahul)" 
+                    class="w-full bg-slate-950 border border-slate-700 rounded-2xl pl-11 pr-4 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-200">
+            </div>
+            <button onclick="submitGatekeeperSession()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-4 rounded-2xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                Unlock Message APIs <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-6">RP Digital Trend Isolated Routing Active</p>
+    </div>
+</div>
+
+<!-- Main Workspace -->
+<div id="workspaceContent" class="opacity-0 transition-opacity duration-500 pointer-events-none p-6 md:p-12">
+    <div class="max-w-5xl mx-auto space-y-8">
+        
+        <!-- Header -->
+        <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-6 gap-4">
+            <div>
+                <div class="flex items-center gap-4 mb-2">
+                    <a href="/" class="text-xs font-semibold text-emerald-400 hover:underline flex items-center gap-1">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                    <span class="text-slate-700">|</span>
+                    <a href="/apis-qr.html" class="text-xs font-semibold text-amber-400 hover:underline flex items-center gap-1">
+                        <i class="fas fa-qrcode"></i> Go to QR Generator API
+                    </a>
+                </div>
+                <h1 class="text-3xl font-extrabold text-white flex items-center gap-3">
+                    <i class="fas fa-plug text-emerald-500"></i> RP Digital Trend - Message APIs
+                </h1>
+                <p class="text-slate-400 text-sm mt-1">Push instant WhatsApp notifications through session: <span id="currentSessionTag" class="text-emerald-400 font-bold font-mono">None</span></p>
+            </div>
+            <button onclick="switchSessionPrompt()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs px-4 py-2.5 rounded-xl border border-slate-700 transition">
+                <i class="fas fa-key text-emerald-400 mr-1"></i> Switch Session ID
+            </button>
+        </div>
+
+        <!-- Interactive Sandbox Builder -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-xl">
+            <h2 class="text-xl font-bold mb-2 flex items-center gap-2 text-white">
+                <i class="fas fa-sliders-h text-emerald-500"></i> Interactive Send-Message URL Builder
+            </h2>
+            <p class="text-slate-400 text-sm mb-6">Modify parameters below to generate and test your GET webhook URL for external panels or CRM.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Target Session ID</label>
+                    <input type="text" id="apiSession" disabled
+                        class="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-sm text-emerald-400 font-mono cursor-not-allowed">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Recipient Phone</label>
+                    <input type="text" id="apiPhone" value="919876543210" oninput="buildApiUrl()"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Message Content</label>
+                    <textarea id="apiText" rows="2" oninput="buildApiUrl()"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-sans">Hello from RP Digital Trend! Your OTP is 4829.</textarea>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Attach Media Link URL (Optional)</label>
+                    <input type="text" id="apiMedia" value="" placeholder="https://example.com/banner.jpg" oninput="buildApiUrl()"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                </div>
+            </div>
+
+            <!-- Dynamic Link Panel -->
+            <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4">
+                <div class="flex flex-wrap justify-between items-center gap-2">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">GET Webhook Request URL</span>
+                    <div class="flex gap-2">
+                        <button onclick="triggerApiCall()" class="text-xs text-emerald-400 hover:text-emerald-300 font-bold bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20 transition">
+                            <i class="fas fa-play mr-1"></i> Test Send Now
+                        </button>
+                        <button onclick="copyToClipboard()" class="text-xs text-slate-300 hover:text-white font-bold bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 transition">
+                            <i class="fas fa-copy mr-1"></i> Copy Link
+                        </button>
+                    </div>
+                </div>
+                <div class="font-mono text-xs text-emerald-400 break-all p-3 bg-slate-900 border border-slate-800 rounded-xl" id="outputUrl">
+                    Generating endpoint...
+                </div>
+            </div>
+        </div>
+
+        <!-- Documentation Guides -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                <h3 class="font-bold text-lg text-white flex items-center gap-2">
+                    <i class="fas fa-code text-emerald-500"></i> Node.js / PHP Integration
+                </h3>
+                <pre class="bg-slate-950 p-4 rounded-2xl text-xs font-mono text-slate-300 overflow-x-auto">const axios = require('axios');
+
+axios.get('YOUR_GENERATED_ENDPOINT_URL')
+  .then(res => console.log('Sent:', res.data))
+  .catch(err => console.error('Error:', err.response.data));</pre>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                <h3 class="font-bold text-lg text-white flex items-center gap-2">
+                    <i class="fas fa-exchange-alt text-emerald-500"></i> JSON Responses
+                </h3>
+                <div class="space-y-3">
+                    <div>
+                        <span class="text-xs font-bold text-emerald-400">SUCCESS (200 OK)</span>
+                        <pre class="bg-slate-950 p-3 rounded-xl text-[11px] font-mono text-slate-300 mt-1">{
+  "success": true,
+  "brand": "RP Digital Trend",
+  "message": "Message dispatched successfully."
+}</pre>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-red-400">NOT LOGGED IN (400)</span>
+                        <pre class="bg-slate-950 p-3 rounded-xl text-[11px] font-mono text-slate-300 mt-1">{
+  "error": "Session [default] is not logged in. Scan QR Code first."
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Alert Dialog -->
+<div id="apiAlert" class="hidden fixed bottom-6 right-6 bg-slate-900 border border-emerald-500/50 rounded-2xl px-6 py-4 shadow-2xl z-50 flex items-center gap-3">
+    <span id="apiAlertMessage" class="text-sm font-medium text-slate-200"></span>
+</div>
+
+<script>
+    let activeSession = null;
+
+    function showAlert(msg, isSuccess = true) {
+        const alertBox = document.getElementById('apiAlert');
+        const alertMsg = document.getElementById('apiAlertMessage');
+        
+        alertBox.className = isSuccess 
+            ? "fixed bottom-6 right-6 bg-slate-900 border border-emerald-500/50 rounded-2xl px-6 py-4 shadow-2xl z-50 flex items-center gap-3 text-emerald-400"
+            : "fixed bottom-6 right-6 bg-slate-900 border border-red-500/50 rounded-2xl px-6 py-4 shadow-2xl z-50 flex items-center gap-3 text-red-400";
+        
+        alertMsg.innerText = msg;
+        alertBox.classList.remove('hidden');
+        setTimeout(() => alertBox.classList.add('hidden'), 3500);
+    }
+
+    function submitGatekeeperSession() {
+        const val = document.getElementById('initialSessionInput').value.trim();
+        if (!val || val.length < 2) {
+            return showAlert("Please enter a valid Session ID (min 2 chars)", false);
+        }
+
+        activeSession = val.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+        localStorage.setItem('wa_gateway_session', activeSession);
+        initializeApiPortal();
+    }
+
+    function switchSessionPrompt() {
+        localStorage.removeItem('wa_gateway_session');
+        activeSession = null;
+        document.getElementById('workspaceContent').className = "opacity-0 transition-opacity duration-500 pointer-events-none p-6 md:p-12";
+        document.getElementById('gatekeeperModal').classList.remove('hidden');
+        document.getElementById('initialSessionInput').value = '';
+        document.getElementById('initialSessionInput').focus();
+    }
+
+    function initializeApiPortal() {
+        document.getElementById('gatekeeperModal').classList.add('hidden');
+        const content = document.getElementById('workspaceContent');
+        content.classList.remove('pointer-events-none');
+        content.className = "opacity-100 transition-opacity duration-500 p-6 md:p-12";
+
+        document.getElementById('currentSessionTag').innerText = activeSession;
+        document.getElementById('apiSession').value = activeSession;
+
+        buildApiUrl();
+        showAlert(`RP Digital Trend API unlocked for: [${activeSession}]`);
+    }
+
+    function buildApiUrl() {
+        if (!activeSession) return;
+        const host = window.location.origin;
+        const number = document.getElementById('apiPhone').value.trim() || '919876543210';
+        const text = encodeURIComponent(document.getElementById('apiText').value.trim());
+        const media = encodeURIComponent(document.getElementById('apiMedia').value.trim());
+
+        let finalUrl = `${host}/api/send?session=${activeSession}&number=${number}&text=${text}`;
+        if (media) {
+            finalUrl += `&media=${media}`;
+        }
+        document.getElementById('outputUrl').innerText = finalUrl;
+    }
+
+    async function triggerApiCall() {
+        const url = document.getElementById('outputUrl').innerText;
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            if (res.ok) {
+                showAlert("Webhook executed! Message sent.");
+            } else {
+                showAlert(`Error: ${data.error}`, false);
+            }
+        } catch (err) {
+            showAlert("System connection failed.", false);
+        }
+    }
+
+    function copyToClipboard() {
+        const urlText = document.getElementById('outputUrl').innerText;
+        navigator.clipboard.writeText(urlText);
+        showAlert("Copied API endpoint link to clipboard!");
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const stored = localStorage.getItem('wa_gateway_session');
+        if (stored) {
+            activeSession = stored;
+            initializeApiPortal();
+        } else {
+            document.getElementById('gatekeeperModal').classList.remove('hidden');
+            document.getElementById('initialSessionInput').focus();
+        }
+    });
+</script>
+</body>
+</html>
