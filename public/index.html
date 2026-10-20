@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - RP Digital Trend WhatsApp Gateway</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
+
+    <!-- Top Navigation Bar -->
+    <nav class="border-b border-slate-800 bg-slate-900/70 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <i class="fab fa-whatsapp text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-extrabold tracking-tight text-white">RP DIGITAL TREND</h1>
+                    <p class="text-[11px] text-emerald-400 font-mono">Permanent Cloud WhatsApp Gateway</p>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="flex items-center gap-3">
+                <a href="/" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+                <a href="/apis.html" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 transition flex items-center gap-2">
+                    <i class="fas fa-paper-plane text-emerald-400"></i> Message APIs
+                </a>
+                <a href="/apis-qr.html" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 transition flex items-center gap-2">
+                    <i class="fas fa-qrcode text-amber-400"></i> QR Generator / Panel API
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        
+        <!-- Session Selector Bar -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
+            <div class="flex items-center gap-4">
+                <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-emerald-400">
+                    <i class="fas fa-server text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xs uppercase tracking-wider text-slate-400 font-bold">Active Instance Session</span>
+                    <div class="flex items-center gap-3 mt-1">
+                        <h2 id="activeSessionLabel" class="text-2xl font-extrabold text-white font-mono">default</h2>
+                        <span id="statusBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                            INITIALIZING
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 w-full md:w-auto">
+                <input type="text" id="sessionInput" placeholder="Enter session name (e.g. rp1, client2)" 
+                    class="w-full md:w-64 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                <button onclick="changeSession()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-sm transition whitespace-nowrap">
+                    Switch / Create
+                </button>
+                <button onclick="logoutSession()" title="Logout & Reset QR" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold px-4 py-2.5 rounded-xl text-sm transition">
+                    <i class="fas fa-power-off"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Grid: Left (QR + Logs) & Right (Bulk Campaign) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Column: QR Authentication & Live Logs -->
+            <div class="lg:col-span-5 space-y-8">
+                
+                <!-- QR Scanner Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-center shadow-xl">
+                    <h3 class="text-lg font-bold text-white mb-1 flex items-center justify-center gap-2">
+                        <i class="fas fa-qrcode text-emerald-400"></i> WhatsApp Authentication
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-6">Scan once for lifetime permanent cloud session</p>
+
+                    <div id="qrBox" class="w-64 h-64 mx-auto bg-slate-950 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                        <div id="qrSpinner" class="text-slate-400 text-sm flex flex-col items-center gap-3">
+                            <i class="fas fa-circle-notch fa-spin text-3xl text-emerald-400"></i>
+                            <span>Checking session status...</span>
+                        </div>
+                        <img id="qrImage" src="" alt="Scan QR" class="hidden w-full h-full object-contain rounded-xl bg-white p-2">
+                        <div id="connectedInfo" class="hidden flex-col items-center justify-center text-center">
+                            <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl mb-3">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <h4 class="font-bold text-white text-base">Permanent Login Active</h4>
+                            <p id="connectedNumber" class="text-xs text-emerald-400 font-mono mt-1">+91...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live IST Terminal Logs -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                            <i class="fas fa-terminal text-emerald-400"></i> Live Activity Logs (IST)
+                        </h3>
+                        <span id="workerStatus" class="text-[11px] font-mono text-slate-500">Idle</span>
+                    </div>
+                    <div id="logContainer" class="bg-slate-950 border border-slate-800 rounded-2xl p-4 h-72 overflow-y-auto font-mono text-xs space-y-2">
+                        <div class="text-slate-500">Connecting to log stream...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Bulk Campaign Sender -->
+            <div class="lg:col-span-7">
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-xl">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+                        <div>
+                            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                                <i class="fas fa-bullhorn text-emerald-400"></i> Bulk Campaign Dispatcher
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-1">Auto anti-ban delay (1-2 mins) between messages</p>
+                        </div>
+                        <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-lg font-mono">
+                            RP Digital Trend Engine
+                        </span>
+                    </div>
+
+                    <form id="bulkForm" onsubmit="submitBulkCampaign(event)" class="space-y-5">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                                Destination Phone Numbers (Comma or Newline Separated)
+                            </label>
+                            <textarea id="bulkNumbers" rows="4" required placeholder="919876543210&#10;919876543211, 919876543212"
+                                class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-sm text-slate-200 font-mono focus:outline-none focus:border-emerald-500"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                                Campaign Text / Caption
+                            </label>
+                            <textarea id="bulkMessage" rows="4" required placeholder="Hello from RP Digital Trend! Check out our latest offers..."
+                                class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                                Attach Promotional Image (Optional)
+                            </label>
+                            <input type="file" id="bulkMedia" accept="image/*"
+                                class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-3 text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-500 file:text-slate-950 hover:file:bg-emerald-400">
+                        </div>
+
+                        <button type="submit" id="bulkSubmitBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-4 rounded-2xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                            <i class="fas fa-paper-plane"></i> Launch Bulk Campaign
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden fixed bottom-6 right-6 bg-slate-900 border border-emerald-500/50 rounded-2xl px-6 py-4 shadow-2xl z-50 text-sm font-bold text-emerald-400"></div>
+
+    <script>
+        let currentSession = localStorage.getItem('wa_gateway_session') || 'default';
+        document.getElementById('activeSessionLabel').innerText = currentSession;
+        document.getElementById('sessionInput').value = currentSession;
+
+        function showToast(msg, isError = false) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = isError 
+                ? "fixed bottom-6 right-6 bg-slate-900 border border-red-500/50 rounded-2xl px-6 py-4 shadow-2xl z-50 text-sm font-bold text-red-400"
+                : "fixed bottom-6 right-6 bg-slate-900 border border-emerald-500/50 rounded-2xl px-6 py-4 shadow-2xl z-50 text-sm font-bold text-emerald-400";
+            t.classList.remove('hidden');
+            setTimeout(() => t.classList.add('hidden'), 3500);
+        }
+
+        function changeSession() {
+            const val = document.getElementById('sessionInput').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+            if (!val) return showToast("Please enter a valid session ID", true);
+            currentSession = val;
+            localStorage.setItem('wa_gateway_session', currentSession);
+            document.getElementById('activeSessionLabel').innerText = currentSession;
+            showToast(`Switched to session: [${currentSession}]`);
+            pollStatus();
+            pollLogs();
+        }
+
+        async function logoutSession() {
+            try {
+                const res = await fetch(`/api/logout/${currentSession}`, { method: 'POST' });
+                const data = await res.json();
+                showToast(data.message || "Session reset!");
+                pollStatus();
+            } catch (e) {
+                showToast("Failed to reset session", true);
+            }
+        }
+
+        async function pollStatus() {
+            try {
+                const res = await fetch(`/api/status/${currentSession}`);
+                const data = await res.json();
+
+                const badge = document.getElementById('statusBadge');
+                const qrSpinner = document.getElementById('qrSpinner');
+                const qrImage = document.getElementById('qrImage');
+                const connectedInfo = document.getElementById('connectedInfo');
+
+                badge.innerText = data.status;
+
+                if (data.status === 'CONNECTED') {
+                    badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                    qrSpinner.classList.add('hidden');
+                    qrImage.classList.add('hidden');
+                    connectedInfo.classList.remove('hidden');
+                    connectedInfo.classList.add('flex');
+                    document.getElementById('connectedNumber').innerText = `+${data.number}`;
+                } else if (data.qr) {
+                    badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20";
+                    qrSpinner.classList.add('hidden');
+                    connectedInfo.classList.add('hidden');
+                    qrImage.src = data.qr;
+                    qrImage.classList.remove('hidden');
+                } else {
+                    badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700";
+                    qrImage.classList.add('hidden');
+                    connectedInfo.classList.add('hidden');
+                    qrSpinner.classList.remove('hidden');
+                }
+            } catch (e) {}
+        }
+
+        async function pollLogs() {
+            try {
+                const res = await fetch(`/api/logs/${currentSession}`);
+                const data = await res.json();
+                const container = document.getElementById('logContainer');
+                const workerStatus = document.getElementById('workerStatus');
+
+                workerStatus.innerText = data.isSending ? "🚀 Campaign Running..." : "Idle";
+                workerStatus.className = data.isSending ? "text-[11px] font-mono text-emerald-400 animate-pulse" : "text-[11px] font-mono text-slate-500";
+
+                if (data.logs && data.logs.length > 0) {
+                    container.innerHTML = data.logs.map(l => {
+                        let color = "text-slate-300";
+                        if (l.type === 'success') color = "text-emerald-400";
+                        if (l.type === 'warning') color = "text-amber-400";
+                        if (l.type === 'error') color = "text-red-400";
+                        return `<div><span class="text-slate-600">[${l.time}]</span> <span class="${color}">${l.message}</span></div>`;
+                    }).join('');
+                    container.scrollTop = container.scrollHeight;
+                } else {
+                    container.innerHTML = `<div class="text-slate-600">No logs yet for [${currentSession}]...</div>`;
+                }
+            } catch (e) {}
+        }
+
+        async function submitBulkCampaign(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('session', currentSession);
+            formData.append('numbers', document.getElementById('bulkNumbers').value);
+            formData.append('message', document.getElementById('bulkMessage').value);
+            
+            const fileInput = document.getElementById('bulkMedia');
+            if (fileInput.files.length > 0) {
+                formData.append('media', fileInput.files[0]);
+            }
+
+            try {
+                const res = await fetch('/api/send-bulk', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(data.message);
+                    pollLogs();
+                } else {
+                    showToast(data.error || "Failed to start campaign", true);
+                }
+            } catch (err) {
+                showToast("Network error starting campaign", true);
+            }
+        }
+
+        pollStatus();
+        pollLogs();
+        setInterval(pollStatus, 3500);
+        setInterval(pollLogs, 3000);
+    </script>
+</body>
+</html>
