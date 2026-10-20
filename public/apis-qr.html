@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Generator & Panel Embed - RP Digital Trend</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans p-6 md:p-12">
+
+    <div class="max-w-5xl mx-auto space-y-8">
+        
+        <!-- Header -->
+        <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-6 gap-4">
+            <div>
+                <div class="flex items-center gap-4 mb-2">
+                    <a href="/" class="text-xs font-semibold text-emerald-400 hover:underline flex items-center gap-1">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                    <span class="text-slate-700">|</span>
+                    <a href="/apis.html" class="text-xs font-semibold text-emerald-400 hover:underline flex items-center gap-1">
+                        <i class="fas fa-paper-plane"></i> Message Sending APIs
+                    </a>
+                </div>
+                <h1 class="text-3xl font-extrabold text-white flex items-center gap-3">
+                    <i class="fas fa-qrcode text-amber-400"></i> RP Digital Trend - QR Generator & Panel API
+                </h1>
+                <p class="text-slate-400 text-sm mt-1">Generate session QR codes and copy embed links to insert into your other panels or websites.</p>
+            </div>
+        </div>
+
+        <!-- Session QR Generator Input -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-xl">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+                Enter Session ID to Generate QR & External Panel Links
+            </label>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input type="text" id="qrSessionInput" value="default" placeholder="e.g., panel1, client_rahul, store99"
+                    class="flex-1 bg-slate-950 border border-slate-700 rounded-2xl px-4 py-3.5 text-sm text-white font-mono focus:outline-none focus:border-emerald-500">
+                <button onclick="loadQrSession()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-3.5 rounded-2xl text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                    <i class="fas fa-sync-alt"></i> Generate / Load QR
+                </button>
+                <button onclick="resetQrSession()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold px-5 py-3.5 rounded-2xl text-sm transition flex items-center justify-center gap-2">
+                    <i class="fas fa-trash-alt"></i> Reset Session
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left: Live QR Scanner Preview -->
+            <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-3xl p-6 text-center shadow-xl flex flex-col items-center justify-center">
+                <div class="flex items-center justify-between w-full mb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Live QR Preview</span>
+                    <span id="qrStatusBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        LOADING
+                    </span>
+                </div>
+
+                <div class="w-64 h-64 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-center p-4 mb-4">
+                    <div id="qrLoadingText" class="text-xs text-slate-400 flex flex-col items-center gap-2">
+                        <i class="fas fa-spinner fa-spin text-2xl text-emerald-400"></i>
+                        <span>Waiting for QR stream...</span>
+                    </div>
+                    <img id="liveQrImg" src="" alt="QR Code" class="hidden w-full h-full object-contain bg-white p-2 rounded-xl">
+                    <div id="qrConnectedBox" class="hidden flex-col items-center text-center">
+                        <i class="fas fa-check-circle text-4xl text-emerald-400 mb-2"></i>
+                        <h4 class="font-bold text-white text-sm">Session Logged In!</h4>
+                        <p id="qrConnectedPhone" class="text-xs text-emerald-400 font-mono mt-1"></p>
+                    </div>
+                </div>
+
+                <p class="text-[11px] text-slate-500">Auto-refreshes every 3 seconds. Scan with WhatsApp Linked Devices.</p>
+            </div>
+
+            <!-- Right: External Panel Integration Codes -->
+            <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-xl space-y-6">
+                <div>
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fas fa-external-link-alt text-emerald-400"></i> Insert Into Another Panel
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-1">Copy these endpoints to display this session's QR login inside your other admin panels or client dashboards.</p>
+                </div>
+
+                <!-- 1. Direct Image / Iframe URL -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-bold uppercase tracking-wider text-emerald-400">1. Direct QR Stream URL (Image / Popup Link)</label>
+                        <button onclick="copyBox('directQrUrl')" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-lg text-slate-200 font-bold border border-slate-700">
+                            <i class="fas fa-copy mr-1"></i> Copy
+                        </button>
+                    </div>
+                    <div id="directQrUrl" class="bg-slate-950 border border-slate-800 p-3.5 rounded-xl font-mono text-xs text-slate-300 break-all"></div>
+                </div>
+
+                <!-- 2. HTML Iframe Code for Other Panels -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-bold uppercase tracking-wider text-amber-400">2. HTML Iframe Embed (Paste in PHP / Laravel / React Panel)</label>
+                        <button onclick="copyBox('iframeEmbedCode')" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-lg text-slate-200 font-bold border border-slate-700">
+                            <i class="fas fa-copy mr-1"></i> Copy
+                        </button>
+                    </div>
+                    <div id="iframeEmbedCode" class="bg-slate-950 border border-slate-800 p-3.5 rounded-xl font-mono text-xs text-slate-300 break-all"></div>
+                </div>
+
+                <!-- 3. JSON Status & Base64 QR API -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-bold uppercase tracking-wider text-sky-400">3. JSON Status & Base64 QR API Endpoint</label>
+                        <button onclick="copyBox('jsonStatusUrl')" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-lg text-slate-200 font-bold border border-slate-700">
+                            <i class="fas fa-copy mr-1"></i> Copy
+                        </button>
+                    </div>
+                    <div id="jsonStatusUrl" class="bg-slate-950 border border-slate-800 p-3.5 rounded-xl font-mono text-xs text-slate-300 break-all"></div>
+                </div>
+
+                <!-- 4. Direct Send Message Webhook for this session -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-bold uppercase tracking-wider text-purple-400">4. Send Message API Link for this Session</label>
+                        <button onclick="copyBox('sendMsgApiUrl')" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-lg text-slate-200 font-bold border border-slate-700">
+                            <i class="fas fa-copy mr-1"></i> Copy
+                        </button>
+                    </div>
+                    <div id="sendMsgApiUrl" class="bg-slate-950 border border-slate-800 p-3.5 rounded-xl font-mono text-xs text-slate-300 break-all"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="qrToast" class="hidden fixed bottom-6 right-6 bg-slate-900 border border-emerald-500/50 rounded-2xl px-6 py-4 shadow-2xl z-50 text-sm font-bold text-emerald-400"></div>
+
+    <script>
+        let currentQrSession = localStorage.getItem('wa_gateway_session') || 'default';
+        document.getElementById('qrSessionInput').value = currentQrSession;
+
+        function notify(msg) {
+            const t = document.getElementById('qrToast');
+            t.innerText = msg;
+            t.classList.remove('hidden');
+            setTimeout(() => t.classList.add('hidden'), 3000);
+        }
+
+        function updateEmbedCodes() {
+            const host = window.location.origin;
+            const directImg = `${host}/api/qr-image/${currentQrSession}`;
+            const jsonApi = `${host}/api/status/${currentQrSession}`;
+            const sendApi = `${host}/api/send?session=${currentQrSession}&number=919876543210&text=Hello+From+RP+Digital+Trend`;
+
+            document.getElementById('directQrUrl').innerText = directImg;
+            document.getElementById('iframeEmbedCode').innerText = `<iframe src="${directImg}" width="350" height="350" frameborder="0" style="border-radius:16px;overflow:hidden;"></iframe>`;
+            document.getElementById('jsonStatusUrl').innerText = jsonApi;
+            document.getElementById('sendMsgApiUrl').innerText = sendApi;
+        }
+
+        function loadQrSession() {
+            const val = document.getElementById('qrSessionInput').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+            if (!val) return notify("Please enter a valid Session ID");
+            currentQrSession = val;
+            localStorage.setItem('wa_gateway_session', currentQrSession);
+            updateEmbedCodes();
+            fetchLiveQr();
+            notify(`Loaded QR Generator for [${currentQrSession}]`);
+        }
+
+        async function resetQrSession() {
+            await fetch(`/api/logout/${currentQrSession}`, { method: 'POST' });
+            notify(`Session [${currentQrSession}] reset! Generating fresh QR...`);
+            fetchLiveQr();
+        }
+
+        async function fetchLiveQr() {
+            try {
+                const res = await fetch(`/api/status/${currentQrSession}`);
+                const data = await res.json();
+
+                const badge = document.getElementById('qrStatusBadge');
+                const loading = document.getElementById('qrLoadingText');
+                const img = document.getElementById('liveQrImg');
+                const connected = document.getElementById('qrConnectedBox');
+
+                badge.innerText = data.status;
+
+                if (data.status === 'CONNECTED') {
+                    badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                    loading.classList.add('hidden');
+                    img.classList.add('hidden');
+                    connected.classList.remove('hidden');
+                    connected.classList.add('flex');
+                    document.getElementById('qrConnectedPhone').innerText = `+${data.number}`;
+                } else if (data.qr) {
+                    badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20";
+                    loading.classList.add('hidden');
+                    connected.classList.add('hidden');
+                    img.src = data.qr;
+                    img.classList.remove('hidden');
+                } else {
+                    loading.classList.remove('hidden');
+                    img.classList.add('hidden');
+                    connected.classList.add('hidden');
+                }
+            } catch (e) {}
+        }
+
+        function copyBox(id) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text);
+            notify("Copied to clipboard!");
+        }
+
+        updateEmbedCodes();
+        fetchLiveQr();
+        setInterval(fetchLiveQr, 3000);
+    </script>
+</body>
+</html>
