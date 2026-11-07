@@ -3,196 +3,169 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>AI Agent · RP Digital Trend</title>
+<title>Incoming Log · RP Digital Trend</title>
 <style>
-:root{--bg:#0b141a;--panel:#111b21;--card:#202c33;--card2:#2a3942;--line:#2a3942;--text:#e9edef;--sub:#8696a0;--accent:#00a884;--ok:#25d366;--warn:#f0b429;--bad:#f15c6d;--out:#005c4b}
-@media (prefers-color-scheme:light){:root{--bg:#efeae2;--panel:#fff;--card:#fff;--card2:#f0f2f5;--line:#e1e4e6;--text:#111b21;--sub:#667781;--out:#d9fdd3}}
+:root{--bg:#0b141a;--panel:#111b21;--card:#202c33;--line:#2a3942;--text:#e9edef;--sub:#8696a0;--accent:#00a884;--ok:#25d366;--warn:#f0b429}
+@media (prefers-color-scheme:light){:root{--bg:#f0f2f5;--panel:#fff;--card:#f0f2f5;--line:#e1e4e6;--text:#111b21;--sub:#667781}}
 *{box-sizing:border-box;margin:0}
 body{font:14px/1.45 "Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text)}
-a{color:inherit}
-button,input,select,textarea{font:inherit;color:inherit}
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-header{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--card);position:sticky;top:0;z-index:3;flex-wrap:wrap}
-header h1{font-size:18px;font-weight:600;flex:1;min-width:160px}
-select,input[type=text],input[type=password],input[type=number],textarea{background:var(--card2);border:1px solid transparent;border-radius:8px;padding:8px 10px;width:100%}
-header select{width:auto}
-.btn{background:var(--card2);border:0;border-radius:8px;padding:8px 14px;cursor:pointer;text-decoration:none;display:inline-block}
-.btn:hover{filter:brightness(1.12)}
-.btn.p{background:var(--accent);color:#fff}
-.btn.d{color:var(--bad)}
-.btn:disabled{opacity:.5;cursor:default}
-.wrap{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:16px;padding:16px 20px;max-width:1400px;margin:0 auto;align-items:start}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
-.card h2{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.card h2 .n{background:var(--accent);color:#fff;border-radius:10px;padding:0 8px;font-size:12px}
-label{display:block;color:var(--sub);font-size:12.5px;margin:12px 0 4px}
-.sw{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:var(--card2);border-radius:10px}
-.sw input{width:42px;height:24px;accent-color:var(--accent)}
-.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.seg label{margin:0;padding:10px;background:var(--card2);border-radius:8px;cursor:pointer;color:var(--text);border:1px solid transparent}
-.seg input{display:none}
-.seg input:checked+span{color:var(--ok);font-weight:600}
-.seg label:has(input:checked){border-color:var(--accent)}
-.seg small{display:block;color:var(--sub);font-size:12px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.col{display:flex;flex-direction:column;gap:16px}
-.draft,.item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
-.draft .in{border-left:3px solid var(--sub);padding-left:8px;color:var(--sub);margin:6px 0 8px;font-size:13px;white-space:pre-wrap}
-.draft textarea{min-height:76px;resize:vertical;background:var(--out)}
-.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-.hd{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
-.hd b{font-weight:600}.hd small{color:var(--sub)}
-.item .tx{margin:4px 0 6px;white-space:pre-wrap;overflow-wrap:anywhere}
-.ctx{margin-top:8px;padding:10px;background:var(--bg);border-radius:8px;max-height:260px;overflow:auto;display:none}
-.ctx.on{display:block}
-.b{max-width:80%;padding:5px 9px;border-radius:8px;margin:3px 0;background:var(--card2);white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}
-.b.me{margin-left:auto;background:var(--out)}
-.b small{display:block;color:var(--sub);font-size:11px;text-align:right}
-.tag{font-size:11.5px;padding:2px 8px;border-radius:10px;background:var(--card2);color:var(--sub)}
-.tag.on{color:var(--ok)}.tag.off{color:var(--warn)}
-.muted{color:var(--sub);padding:14px 4px}
-.note{font-size:12.5px;color:var(--sub);margin-top:10px}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#323b41;color:#fff;padding:10px 18px;border-radius:10px;display:none;z-index:9;max-width:90vw}
-@media (max-width:900px){.wrap{grid-template-columns:1fr;padding:12px}}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+header{display:flex;align-items:center;gap:10px;padding:12px 20px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap;position:sticky;top:0;z-index:3}
+header h1{font-size:18px;font-weight:600;flex:1;min-width:150px}
+select,input[type=text]{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+.btn{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;text-decoration:none;display:inline-block}
+.btn:hover{filter:brightness(1.15)}
+.live{font-size:12px;padding:3px 10px;border-radius:12px;background:var(--card);color:var(--sub)}
+.live.on{color:var(--ok)}
+main{max-width:1400px;margin:0 auto;padding:16px 20px;display:grid;gap:16px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+.stat b{display:block;font-size:26px;font-weight:600}
+.stat span{color:var(--sub);font-size:13px}
+.cols{display:grid;grid-template-columns:minmax(320px,430px) 1fr;gap:16px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.card h2{font-size:15px;font-weight:600;padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.card h2 .sp{flex:1}
+.scroll{max-height:68vh;overflow:auto}
+table{width:100%;border-collapse:collapse}
+th{position:sticky;top:0;background:var(--panel);text-align:left;color:var(--sub);font-weight:500;font-size:12.5px;padding:8px 12px;border-bottom:1px solid var(--line)}
+td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.pick{cursor:pointer}
+tr.pick:hover td,tr.sel td{background:var(--card)}
+.num{color:var(--ok);white-space:nowrap}
+.cnt{font-weight:600;text-align:right;white-space:nowrap}
+.sub{color:var(--sub);font-size:12.5px}
+.msg{white-space:pre-wrap;overflow-wrap:anywhere}
+.tag{font-size:11.5px;padding:1px 7px;border-radius:9px;background:var(--card);color:var(--sub)}
+.bar{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.bar input{flex:1;min-width:140px}
+.empty{padding:26px 14px;color:var(--sub);text-align:center}
+.chipf{display:none;align-items:center;gap:6px;background:var(--card);padding:3px 4px 3px 10px;border-radius:14px;font-size:13px}
+.chipf.on{display:inline-flex}
+.chipf button{background:none;border:0;cursor:pointer;color:var(--sub);padding:2px 8px}
+details.api{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+details.api summary{cursor:pointer;font-weight:600}
+.ep{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.ep code{flex:1;min-width:260px;background:var(--card);padding:7px 10px;border-radius:8px;font:12.5px ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.ep small{color:var(--sub);flex-basis:100%}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#323b41;color:#fff;padding:9px 16px;border-radius:10px;display:none;z-index:9}
+@media (max-width:900px){.cols{grid-template-columns:1fr}main{padding:12px}.stats{grid-template-columns:1fr 1fr 1fr;gap:8px}.stat b{font-size:20px}}
 </style>
 </head>
 <body>
 <header>
-  <h1>AI Agent · incoming messages</h1>
-  <span class="tag" id="state">…</span>
+  <h1>Incoming messages log</h1>
+  <span class="live" id="live">connecting…</span>
   <select id="sess" aria-label="WhatsApp session"></select>
-  <a class="btn" id="toDash" href="/dashboard.html">Open chats</a>
+  <a class="btn" id="csv" href="#">Download CSV</a>
+  <a class="btn" id="toDash" href="/dashboard.html">Chats</a>
 </header>
 
-<div class="wrap">
-  <section class="card">
-    <h2>Agent settings</h2>
-    <div class="sw"><span><b>AI agent</b><br><small style="color:var(--sub)">Reads each new message and the recent chat, then replies.</small></span><input type="checkbox" id="enabled" role="switch"></div>
+<main>
+  <div class="stats">
+    <div class="stat"><b id="sTotal">0</b><span>Total messages received</span></div>
+    <div class="stat"><b id="sNums">0</b><span>Different numbers</span></div>
+    <div class="stat"><b id="sToday">0</b><span>Messages today</span></div>
+  </div>
 
-    <label>When the AI has a reply</label>
-    <div class="seg">
-      <label><input type="radio" name="mode" value="draft"><span>Ask me first</span><small>Reply waits in the approval list</small></label>
-      <label><input type="radio" name="mode" value="auto"><span>Send automatically</span><small>Sends after a short typing delay</small></label>
-    </div>
-
-    <div class="two">
-      <div><label for="provider">Provider</label><select id="provider"><option value="anthropic">Anthropic (Claude)</option><option value="openai">OpenAI-compatible</option></select></div>
-      <div><label for="model">Model</label><input type="text" id="model" autocomplete="off"></div>
-    </div>
-    <div id="baseWrap" style="display:none"><label for="baseUrl">API base URL</label><input type="text" id="baseUrl" placeholder="https://api.openai.com/v1"></div>
-    <label for="apiKey">API key</label>
-    <input type="password" id="apiKey" autocomplete="new-password" placeholder="Not set">
-    <label for="prompt">Instructions for the agent</label>
-    <textarea id="prompt" rows="7"></textarea>
-    <div class="two">
-      <div><label for="ctxN">Messages it reads per chat</label><input type="number" id="ctxN" min="1" max="60"></div>
-      <div><label for="delay">Wait before replying (sec)</label><input type="number" id="delay" min="1" max="120"></div>
-    </div>
-    <label style="display:flex;gap:8px;align-items:center;color:var(--text)"><input type="checkbox" id="noGroups" style="width:auto"> Ignore group chats</label>
-    <div class="row"><button class="btn p" id="save">Save settings</button><button class="btn" id="test">Test AI connection</button></div>
-    <p class="note">The API key is stored on your server (sessions/&lt;name&gt;/agent.json) and is never sent back to this page.</p>
-  </section>
-
-  <div class="col">
+  <div class="cols">
     <section class="card">
-      <h2>Replies waiting for approval <span class="n" id="dn">0</span></h2>
-      <div id="drafts"></div>
+      <h2>Messages per number</h2>
+      <div class="scroll"><table>
+        <thead><tr><th>Number</th><th style="text-align:right">Messages</th></tr></thead>
+        <tbody id="nums"></tbody>
+      </table></div>
     </section>
+
     <section class="card">
-      <h2>Incoming messages <span class="tag on">live</span></h2>
-      <div id="feed"></div>
+      <h2>Log <span class="chipf" id="chipf"><span id="chipT"></span><button id="chipX" aria-label="Clear number filter">✕</button></span><span class="sp"></span><span class="sub" id="shown"></span></h2>
+      <div class="bar">
+        <input type="text" id="q" placeholder="Search text, name or number" aria-label="Search log">
+        <select id="range" aria-label="Date range"><option value="0">All time</option><option value="today">Today</option><option value="7">Last 7 days</option></select>
+        <select id="limit" aria-label="Rows"><option>100</option><option>300</option><option>1000</option></select>
+      </div>
+      <div class="scroll"><table>
+        <thead><tr><th>Time</th><th>From</th><th>Message</th></tr></thead>
+        <tbody id="log"></tbody>
+      </table></div>
     </section>
   </div>
-</div>
+
+  <details class="api">
+    <summary>Use as API</summary>
+    <div id="eps"></div>
+  </details>
+</main>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
 const $=s=>document.querySelector(s);
 let SESSION=new URLSearchParams(location.search).get('session')||localStorage.getItem('wa_session')||'default';
-let cfg={},drafts=[],feed=[];
-const TZ={timeZone:'Asia/Kolkata'};
+let pickNum='',timer=null;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const hm=t=>new Date(t*1000).toLocaleString('en-IN',{...TZ,day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
+const TZ={timeZone:'Asia/Kolkata'};
+const when=t=>new Date(t*1000).toLocaleString('en-IN',{...TZ,day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
 const ICON={image:'📷 Photo',video:'🎥 Video',audio:'🎤 Voice message',sticker:'Sticker',document:'📄 Document',location:'📍 Location',contact:'👤 Contact',other:'Message'};
-const show=m=>m.kind==='text'?m.text:(ICON[m.kind]||'Message')+(m.text?' — '+m.text:'');
-async function api(p,o){const r=await fetch(p,o);const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||r.statusText);return j}
-const post=(p,b)=>api(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
-function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',3500)}
-async function busy(btn,fn){const t=btn.textContent;btn.disabled=true;btn.textContent='Working…';try{await fn()}catch(e){toast(e.message)}btn.disabled=false;btn.textContent=t}
+const body=e=>e.kind==='text'?e.text:(ICON[e.kind]||'Message')+(e.text?' — '+e.text:'');
+async function api(p){const r=await fetch(p);const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||r.statusText);return j}
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',2500)}
 
-/* ---------- settings ---------- */
-function fillCfg(){
-  $('#enabled').checked=cfg.enabled;
-  document.querySelectorAll('input[name=mode]').forEach(r=>r.checked=r.value===cfg.mode);
-  $('#provider').value=cfg.provider;$('#model').value=cfg.model;$('#baseUrl').value=cfg.baseUrl||'';
-  $('#apiKey').value='';$('#apiKey').placeholder=cfg.hasKey?cfg.apiKey+' (saved — leave blank to keep)':'Not set';
-  $('#prompt').value=cfg.systemPrompt;$('#ctxN').value=cfg.contextLimit;$('#delay').value=cfg.delaySec;$('#noGroups').checked=cfg.ignoreGroups;
-  $('#baseWrap').style.display=cfg.provider==='openai'?'block':'none';
-  const s=$('#state');s.className='tag '+(cfg.enabled?'on':'off');
-  s.textContent=!cfg.enabled?'Agent off':cfg.mode==='auto'?'Agent on · auto-send':'Agent on · asks first';
+function logUrl(extra=''){
+  const p=new URLSearchParams();
+  if(pickNum)p.set('number',pickNum);
+  if($('#q').value.trim())p.set('q',$('#q').value.trim());
+  const r=$('#range').value;
+  if(r==='today'){const d=new Date(new Date().toLocaleString('en-US',TZ));d.setHours(0,0,0,0);p.set('since',Math.floor((Date.now()-(new Date(new Date().toLocaleString('en-US',TZ))-d))/1000))}
+  else if(r!=='0')p.set('since',Math.floor(Date.now()/1000)-r*86400);
+  return p.toString();
 }
-$('#provider').onchange=e=>{$('#baseWrap').style.display=e.target.value==='openai'?'block':'none';if(e.target.value==='openai'&&/^claude/.test($('#model').value))$('#model').value='gpt-4o-mini';if(e.target.value==='anthropic'&&!/^claude/.test($('#model').value))$('#model').value='claude-sonnet-5-5'};
-function collect(){
-  return{enabled:$('#enabled').checked,mode:document.querySelector('input[name=mode]:checked')?.value||'draft',provider:$('#provider').value,model:$('#model').value,baseUrl:$('#baseUrl').value,apiKey:$('#apiKey').value,systemPrompt:$('#prompt').value,contextLimit:$('#ctxN').value,delaySec:$('#delay').value,ignoreGroups:$('#noGroups').checked};
+async function loadSummary(){
+  const d=await api(`/api/incoming/${SESSION}/summary`);
+  $('#sTotal').textContent=d.total_messages;$('#sNums').textContent=d.total_numbers;$('#sToday').textContent=d.today_messages;
+  $('#nums').innerHTML=d.numbers.length?d.numbers.map(n=>`<tr class="pick ${n.number&&n.number===pickNum?'sel':''}" data-n="${esc(n.number)}" data-t="${esc(n.phone||n.name)}"><td><div class="num">${esc(n.phone||'Number hidden')}</div><div class="sub">${esc(n.name)}${n.name?' · ':''}last ${when(n.last_ts)}</div></td><td class="cnt">${n.count}</td></tr>`).join(''):'<tr><td class="empty" colspan="2">No messages yet. Numbers appear here as soon as someone writes to you.</td></tr>';
 }
-$('#save').onclick=e=>busy(e.target,async()=>{cfg=await post(`/api/agent/${SESSION}/config`,collect());fillCfg();toast('Settings saved')});
-$('#test').onclick=e=>busy(e.target,async()=>{await post(`/api/agent/${SESSION}/config`,collect());const r=await post(`/api/agent/${SESSION}/test`,{});toast('AI connected — it answered: '+r.text)});
-$('#enabled').onchange=async()=>{try{cfg=await post(`/api/agent/${SESSION}/config`,{enabled:$('#enabled').checked});fillCfg();if(cfg.enabled&&!cfg.hasKey)toast('Add an API key so the agent can reply')}catch(e){toast(e.message)}};
+async function loadLog(){
+  const lim=$('#limit').value;
+  const d=await api(`/api/incoming/${SESSION}?limit=${lim}&${logUrl()}`);
+  $('#shown').textContent=`${d.count} of ${d.total}`;
+  $('#log').innerHTML=d.messages.length?d.messages.map(e=>`<tr><td class="sub" style="white-space:nowrap">${when(e.ts)}</td><td><div class="num">${esc(e.phone||'Number hidden')}</div><div class="sub">${esc(e.name)}${e.group?' <span class="tag">group</span>':''}</div></td><td class="msg">${esc(body(e))}</td></tr>`).join(''):'<tr><td class="empty" colspan="3">Nothing matches. Clear the filters or wait for new messages.</td></tr>';
+  $('#csv').href=`/api/incoming/${SESSION}/export.csv?${logUrl()}`;
+}
+const refresh=()=>Promise.all([loadSummary(),loadLog()]).catch(e=>toast(e.message));
+const soon=()=>{clearTimeout(timer);timer=setTimeout(refresh,400)};
 
-/* ---------- approval list ---------- */
-function renderDrafts(){
-  $('#dn').textContent=drafts.length;
-  $('#drafts').innerHTML=drafts.length?drafts.map(d=>`<div class="draft" data-id="${d.id}" data-j="${esc(d.jid)}"><div class="hd"><b>${esc(d.name)}</b><small>${hm(d.ts)}</small></div><div class="in">${esc(d.inbound)}</div><textarea aria-label="Reply to ${esc(d.name)}">${esc(d.text)}</textarea><div class="row"><button class="btn p" data-a="send">Send reply</button><button class="btn" data-a="regen">Write again</button><a class="btn" href="/dashboard.html?session=${SESSION}&jid=${encodeURIComponent(d.jid)}">Open chat</a><button class="btn d" data-a="drop">Discard</button></div></div>`).join(''):`<div class="muted">Nothing waiting. When the agent writes a reply in “Ask me first” mode, it appears here.</div>`;
-}
-$('#drafts').addEventListener('click',e=>{
-  const b=e.target.closest('button[data-a]');if(!b)return;
-  const el=b.closest('.draft'),id=el.dataset.id,jid=el.dataset.j;
-  if(b.dataset.a==='send')busy(b,async()=>{await post(`/api/agent/${SESSION}/drafts/${id}/approve`,{text:el.querySelector('textarea').value});drafts=drafts.filter(d=>d.id!==id);renderDrafts();toast('Reply sent')});
-  if(b.dataset.a==='drop')busy(b,async()=>{await api(`/api/agent/${SESSION}/drafts/${id}`,{method:'DELETE'});drafts=drafts.filter(d=>d.id!==id);renderDrafts()});
-  if(b.dataset.a==='regen')busy(b,async()=>{const r=await post(`/api/agent/${SESSION}/suggest`,{jid,asDraft:true});if(r.draft){drafts=drafts.filter(d=>d.jid!==jid&&d.id!==id);drafts.push(r.draft);renderDrafts()}});
+$('#nums').addEventListener('click',e=>{
+  const r=e.target.closest('tr.pick');if(!r||!r.dataset.n)return;
+  pickNum=r.dataset.n;$('#chipT').textContent=r.dataset.t||pickNum;$('#chipf').classList.add('on');refresh();
 });
+$('#chipX').onclick=()=>{pickNum='';$('#chipf').classList.remove('on');refresh()};
+$('#q').oninput=soon;$('#range').onchange=refresh;$('#limit').onchange=refresh;
 
-/* ---------- incoming feed ---------- */
-function renderFeed(){
-  $('#feed').innerHTML=feed.length?feed.map(m=>`<div class="item" data-j="${esc(m.jid)}" data-id="${esc(m.id)}"><div class="hd"><b>${esc(m.name)}${m.sender?' · '+esc(m.sender):''}</b><small>${hm(m.ts)}</small></div><div class="tx">${esc(show(m))}</div><div class="row" style="margin-top:0"><button class="btn" data-a="ctx">What the AI reads</button><button class="btn" data-a="draft">Write AI reply</button><button class="btn" data-a="ai"><span>${m.aiOff?'AI paused':'AI active'}</span></button><a class="btn" href="/dashboard.html?session=${SESSION}&jid=${encodeURIComponent(m.jid)}">Open chat</a></div><div class="ctx"></div></div>`).join(''):`<div class="muted">No incoming messages yet. They show up here the moment someone writes to this number.</div>`;
+function endpoints(){
+  const o=location.origin,s=SESSION;
+  const list=[
+    [`${o}/api/incoming/${s}?limit=100`,'All incoming messages, newest first. Optional: number, q, kind, group=true|false, since (unix time), limit (max 1000), offset.'],
+    [`${o}/api/incoming/${s}?number=7015373621`,'Messages from one number (10-digit or full number with country code).'],
+    [`${o}/api/incoming/${s}/summary`,'How many messages each number sent, plus totals and today’s count.'],
+    [`${o}/api/incoming/${s}/export.csv`,'Same log as a CSV file.']
+  ];
+  $('#eps').innerHTML=list.map(([u,d])=>`<div class="ep"><code>GET ${esc(u)}</code><button class="btn" data-u="${esc(u)}">Copy</button><small>${esc(d)}</small></div>`).join('');
 }
-$('#feed').addEventListener('click',e=>{
-  const b=e.target.closest('button[data-a]');if(!b)return;
-  const el=b.closest('.item'),jid=el.dataset.j,box=el.querySelector('.ctx');
-  if(b.dataset.a==='ctx'){
-    if(box.classList.toggle('on')&&!box.dataset.l){
-      box.textContent='Loading…';
-      api(`/api/wa/${SESSION}/messages/${encodeURIComponent(jid)}?limit=${cfg.contextLimit||20}`).then(d=>{box.dataset.l=1;box.innerHTML=d.messages.map(m=>`<div class="b ${m.fromMe?'me':''}">${esc(show(m))}<small>${m.fromMe?'You':'Customer'} · ${hm(m.ts)}</small></div>`).join('')||'No messages stored.'}).catch(x=>box.textContent=x.message);
-    }
-  }
-  if(b.dataset.a==='draft')busy(b,async()=>{const r=await post(`/api/agent/${SESSION}/suggest`,{jid,asDraft:true});if(r.draft){drafts=drafts.filter(d=>d.jid!==jid);drafts.push(r.draft);renderDrafts();toast('Reply drafted — review it above')}});
-  if(b.dataset.a==='ai')post(`/api/agent/${SESSION}/config`,{toggleChat:jid}).then(()=>{feed.forEach(m=>{if(m.jid===jid)m.aiOff=!m.aiOff});renderFeed()}).catch(x=>toast(x.message));
-});
+$('#eps').addEventListener('click',e=>{const b=e.target.closest('button[data-u]');if(b)navigator.clipboard.writeText(b.dataset.u).then(()=>toast('Link copied'))});
 
-/* ---------- live ---------- */
-let es;
 function connect(){
-  if(es)es.close();
-  es=new EventSource(`/api/wa/${SESSION}/events`);
-  es.addEventListener('message',e=>{
-    const {msg,chat}=JSON.parse(e.data);
-    if(msg.fromMe)return;
-    feed=[{...msg,name:chat.name,aiOff:chat.aiOff},...feed.filter(x=>x.id!==msg.id)].slice(0,80);renderFeed();
-  });
-  es.addEventListener('draft',e=>{const d=JSON.parse(e.data);drafts=drafts.filter(x=>x.jid!==d.jid&&x.id!==d.id);drafts.push(d);renderDrafts()});
-  es.addEventListener('draftRemoved',e=>{const {jid}=JSON.parse(e.data);drafts=drafts.filter(x=>x.jid!==jid);renderDrafts()});
+  const es=new EventSource(`/api/wa/${SESSION}/events`);
+  es.onopen=()=>{$('#live').textContent='live';$('#live').classList.add('on')};
+  es.onerror=()=>{$('#live').textContent='reconnecting…';$('#live').classList.remove('on')};
+  es.addEventListener('message',e=>{if(!JSON.parse(e.data).msg.fromMe)soon()});
 }
-
 (async()=>{
   localStorage.setItem('wa_session',SESSION);
   $('#toDash').href='/dashboard.html?session='+encodeURIComponent(SESSION);
   try{const l=await api('/api/sessions');if(!l.some(s=>s.name===SESSION))l.push({name:SESSION});$('#sess').innerHTML=l.map(s=>`<option ${s.name===SESSION?'selected':''}>${esc(s.name)}</option>`).join('')}catch(e){}
   $('#sess').onchange=e=>{localStorage.setItem('wa_session',e.target.value);location.href='/incoming.html?session='+encodeURIComponent(e.target.value)};
-  try{
-    [cfg,drafts,feed]=await Promise.all([api(`/api/agent/${SESSION}/config`),api(`/api/agent/${SESSION}/drafts`),api(`/api/wa/${SESSION}/incoming?limit=60`)]);
-    fillCfg();renderDrafts();renderFeed();
-  }catch(e){toast(e.message)}
-  connect();
+  endpoints();await refresh();connect();
 })();
 </script>
 </body>
