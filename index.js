@@ -1,19 +1,4 @@
 const express = require('express');
-// 1. top of file, with the other requires
-const waStore = require('./wa-store');
-
-// 2. in startBaileys(), right after: sessionData.sock = sock;
-waStore.attach(sessionName, sock, sessionData);
-
-// 3. before app.listen(...)
-waStore.routes(app, { sessions, getOrInitSession, upload, sessionsDir, addLog });
-
-// 4. with your other page routes
-app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
-app.get('/incoming', (req, res) => res.sendFile(path.join(__dirname, 'public', 'incoming.html')));
-
-
-
 const { 
     default: makeWASocket, 
     useMultiFileAuthState, 
@@ -28,6 +13,7 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 const cors = require('cors');
+const waStore = require('./wa-store');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -148,6 +134,12 @@ async function startBaileys(sessionName) {
             sessionData.sock.ev.removeAllListeners('connection.update');
             sessionData.sock.ev.removeAllListeners('creds.update');
             sessionData.sock.ev.removeAllListeners('messages.upsert');
+            sessionData.sock.ev.removeAllListeners('messages.update');
+            sessionData.sock.ev.removeAllListeners('messaging-history.set');
+            sessionData.sock.ev.removeAllListeners('chats.upsert');
+            sessionData.sock.ev.removeAllListeners('chats.update');
+            sessionData.sock.ev.removeAllListeners('contacts.upsert');
+            sessionData.sock.ev.removeAllListeners('contacts.update');
             sessionData.sock.ws.close();
         } catch (err) {}
     }
@@ -184,6 +176,9 @@ async function startBaileys(sessionName) {
     });
 
     sessionData.sock = sock;
+
+    // Chat store + dashboard + AI agent listeners
+    waStore.attach(sessionName, sock, sessionData);
 
     sock.ev.on('creds.update', async () => {
         try {
@@ -286,6 +281,10 @@ app.get(['/apis', '/apis.html', '/api'], (req, res) => res.sendFile(path.join(__
 
 // 3. QR Generator & External Panel Embedder (Supports /apis-qr, /apis-qr.html)
 app.get(['/apis-qr', '/apis-qr.html'], (req, res) => res.sendFile(path.join(__dirname, 'public', 'apis-qr.html')));
+
+// 4. WhatsApp-style chat dashboard and AI agent page
+app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
+app.get('/incoming', (req, res) => res.sendFile(path.join(__dirname, 'public', 'incoming.html')));
 
 // Get JSON status & base64 QR of a session
 app.get('/api/status/:sessionName', async (req, res) => {
@@ -471,6 +470,9 @@ async function runBulkWorker(sessionName, list, text, mediaUrl) {
     addLog(sessionName, `🏁 Bulk campaign completed.`, 'success');
 }
 
+// Chat store APIs, live events (SSE) and AI agent for dashboard.html / incoming.html
+waStore.routes(app, { sessions, getOrInitSession, upload, sessionsDir, addLog });
+
 process.on('uncaughtException', (err) => console.error('[Protection] Uncaught Exception:', err.message));
 process.on('unhandledRejection', (reason) => console.error('[Protection] Unhandled Rejection:', reason));
 
@@ -478,5 +480,7 @@ app.listen(port, () => {
     console.log(`=============================================`);
     console.log(` 🚀 RP Digital Trend - Multi WhatsApp Gateway`);
     console.log(` 🌐 URL: http://localhost:${port}`);
+    console.log(` 💬 Chats: http://localhost:${port}/dashboard`);
+    console.log(` 🤖 AI Agent: http://localhost:${port}/incoming`);
     console.log(`=============================================`);
 });
