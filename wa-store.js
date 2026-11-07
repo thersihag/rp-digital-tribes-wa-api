@@ -34,13 +34,61 @@ function normJid(x) {
     return `${n}@s.whatsapp.net`;
 }
 
+const isLid = j => !!j && j.endsWith('@lid');
+function fmtPhone(j) {
+    if (!j || isLid(j) || isGroup(j)) return null;
+    const d = numOf(j);
+    return d.length === 12 && d.startsWith('91') ? `+91 ${d.slice(2, 7)} ${d.slice(7)}` : '+' + d;
+}
+
+/* ---------- LID -> real phone number ---------- */
+function learnLid(wa, lid, pn) {
+    if (!lid || !pn || isLid(pn) || wa.lidMap.get(lid) === pn) return;
+    wa.lidMap.set(lid, pn);
+    const old = wa.msgs.get(lid);
+    if (old) {
+        const cur = wa.msgs.get(pn) || [];
+        const ids = new Set(cur.map(m => m.id));
+        old.forEach(m => { if (!ids.has(m.id)) { m.jid = pn; cur.push(m); } });
+        cur.sort((a, b) => a.ts - b.ts);
+        wa.msgs.set(pn, cur);
+        wa.msgs.delete(lid);
+    }
+    const oc = wa.chats.get(lid);
+    if (oc) {
+        const nc = wa.chats.get(pn) || { jid: pn, name: null, unread: 0, ts: 0 };
+        nc.name = nc.name || oc.name;
+        nc.ts = Math.max(nc.ts || 0, oc.ts || 0);
+        nc.unread = (nc.unread || 0) + (oc.unread || 0);
+        wa.chats.set(pn, nc);
+        wa.chats.delete(lid);
+    }
+    const nm = wa.names.get(lid);
+    if (nm && !wa.names.get(pn)) wa.names.set(pn, nm);
+}
+function resolveJid(wa, raw) {
+    const k = raw.key, jid = k.remoteJid;
+    if (!isLid(jid)) return jid;
+    if (k.remoteJidAlt && !isLid(k.remoteJidAlt)) { learnLid(wa, jid, k.remoteJidAlt); return k.remoteJidAlt; }
+    return wa.lidMap.get(jid) || jid;
+}
+async function tryResolveLid(sock, wa, raw) {
+    const k = raw.key;
+    if (!k || !isLid(k.remoteJid) || k.remoteJidAlt || wa.lidMap.has(k.remoteJid)) return;
+    const repo = sock.signalRepository?.lidMapping;
+    if (!repo?.getPNForLID) return;
+    for (const q of [k.remoteJid, numOf(k.remoteJid)]) {
+        try { const pn = await repo.getPNForLID(q); if (pn) { k.remoteJidAlt = pn.includes('@') ? pn : pn + '@s.whatsapp.net'; return; } } catch (e) {}
+    }
+}
+
 /* ---------- per-session state ---------- */
 function init(name, s) {
     if (s.wa) return s.wa;
     const dir = path.join(ctx.sessionsDir, name);
     const wa = {
         dir, chats: new Map(), msgs: new Map(), raw: new Map(), names: new Map(),
-        avatars: new Map(), clients: new Set(), timers: new Map(), groupFetching: new Set(),
+        avatars: new Map(), lidMap: new Map(), clients: new Set(), timers: new Map(), groupFetching: new Set(),
         drafts: [], agent: { ...DEFAULT_AGENT }, saveTimer: null
     };
     try {
@@ -48,6 +96,7 @@ function init(name, s) {
         (d.chats || []).forEach(c => wa.chats.set(c.jid, c));
         Object.entries(d.msgs || {}).forEach(([j, l]) => wa.msgs.set(j, l));
         Object.entries(d.names || {}).forEach(([j, n]) => wa.names.set(j, n));
+        Object.entries(d.lids || {}).forEach(([l, n]) => wa.lidMap.set(l, n));
     } catch (e) {}
     try { Object.assign(wa.agent, JSON.parse(fs.readFileSync(path.join(dir, 'agent.json'), 'utf8'))); } catch (e) {}
     s.wa = wa;
@@ -63,7 +112,8 @@ function scheduleSave(wa) {
             fs.writeFileSync(path.join(wa.dir, 'store.json'), JSON.stringify({
                 chats: [...wa.chats.values()],
                 msgs: Object.fromEntries(wa.msgs),
-                names: Object.fromEntries(wa.names)
+                names: Object.fromEntries(wa.names),
+                lids: Object.fromEntries(wa.lidMap)
             }));
         } catch (e) {}
     }, 3000);
@@ -105,7 +155,7 @@ function parse(raw) {
 function addMessage(name, wa, raw, opts = {}) {
     const { live = false, quiet = false } = opts;
     if (!raw || !raw.key) return null;
-    const jid = raw.key.remoteJid;
+    const jid = resolveJid(wa, raw);
     if (!jid || jid === 'status@broadcast' || jid.endsWith('@newsletter')) return null;
     const p = parse(raw);
     if (!p) return null;
@@ -117,7 +167,7 @@ function addMessage(name, wa, raw, opts = {}) {
     p.fromMe = !!raw.key.fromMe;
     p.ts = toNum(raw.messageTimestamp) || Math.floor(Date.now() / 1000);
     p.status = raw.status != null ? raw.status : (p.fromMe ? 1 : null);
-    p.sender = isGroup(jid) && !p.fromMe ? (raw.pushName || numOf(raw.key.participant || '')) : null;
+    p.sender = isGroup(jid) && !p.fromMe ? (raw.pushName || fmtPhone(raw.key.participantAlt || raw.key.participant || '') || 'Member') : null;
 
     list.push(p);
     list.sort((a, b) => a.ts - b.ts);
@@ -161,8 +211,9 @@ function view(name, wa, jid) {
 
     return {
         jid,
-        name: wa.names.get(jid) || c.name || (g ? 'Group' : '+' + numOf(jid)),
-        number: numOf(jid),
+        name: wa.names.get(jid) || c.name || (g ? 'Group' : fmtPhone(jid) || 'WhatsApp user'),
+        number: isLid(jid) || g ? '' : numOf(jid),
+        phone: fmtPhone(jid),
         isGroup: g,
         unread: c.unread || 0,
         ts: c.ts || 0,
@@ -176,7 +227,8 @@ function attach(name, sock, s) {
     const wa = init(name, s);
 
     const upChat = c => {
-        const j = c.id;
+        if (isLid(c.id) && c.pnJid) learnLid(wa, c.id, c.pnJid);
+        const j = wa.lidMap.get(c.id) || c.id;
         if (!j || j === 'status@broadcast' || j.endsWith('@newsletter')) return;
         const o = wa.chats.get(j) || { jid: j, name: null, unread: 0, ts: 0 };
         if (c.name) o.name = c.name;
@@ -185,8 +237,11 @@ function attach(name, sock, s) {
         wa.chats.set(j, o);
     };
     const setName = c => {
+        if (c.lid && c.id && !isLid(c.id)) learnLid(wa, c.lid, c.id);
+        if (isLid(c.id) && c.phoneNumber) learnLid(wa, c.id, c.phoneNumber.includes('@') ? c.phoneNumber : c.phoneNumber + '@s.whatsapp.net');
         const n = c.name || c.notify || c.verifiedName;
-        if (n && c.id) wa.names.set(c.id, n);
+        const id = wa.lidMap.get(c.id) || c.id;
+        if (n && id) wa.names.set(id, n);
     };
 
     sock.ev.on('messaging-history.set', ({ chats = [], contacts = [], messages = [] }) => {
@@ -200,9 +255,12 @@ function attach(name, sock, s) {
     sock.ev.on('contacts.upsert', cs => cs.forEach(setName));
     sock.ev.on('contacts.update', cs => cs.forEach(setName));
 
-    sock.ev.on('messages.upsert', ({ messages, type }) => {
+    sock.ev.on('lid-mapping.update', m => { try { learnLid(wa, m.lid, m.pn); scheduleSave(wa); } catch (e) {} });
+
+    sock.ev.on('messages.upsert', async ({ messages, type }) => {
         for (const raw of messages) {
             try {
+                await tryResolveLid(sock, wa, raw);
                 const p = addMessage(name, wa, raw, { live: type === 'notify' });
                 if (p && type === 'notify' && !p.fromMe) scheduleAgent(name, p.jid);
             } catch (e) { console.error('[wa-store] upsert error:', e.message); }
@@ -212,10 +270,11 @@ function attach(name, sock, s) {
     sock.ev.on('messages.update', ups => {
         for (const { key, update } of ups) {
             if (update?.status == null) continue;
-            const m = wa.msgs.get(key.remoteJid)?.find(x => x.id === key.id);
+            const jid = wa.lidMap.get(key.remoteJid) || key.remoteJid;
+            const m = wa.msgs.get(jid)?.find(x => x.id === key.id);
             if (m && update.status > (m.status || 0)) {
                 m.status = update.status;
-                emit(wa, 'status', { jid: key.remoteJid, id: key.id, status: m.status });
+                emit(wa, 'status', { jid, id: key.id, status: m.status });
             }
         }
     });
@@ -266,7 +325,7 @@ async function generate(name, jid) {
     const msgs = agentMessages(wa, jid, cfg.contextLimit);
     if (!msgs.length || msgs[msgs.length - 1].role !== 'user') return null;
     const v = view(name, wa, jid);
-    const system = `${cfg.systemPrompt}\n\nYou are replying on WhatsApp to ${v.name} (${v.number}). Reply in the customer's language, keep it short and natural, and do not use markdown headings. If no reply is needed (for example just "ok" or "thanks"), output exactly [NO_REPLY].`;
+    const system = `${cfg.systemPrompt}\n\nYou are replying on WhatsApp to ${v.name} (${v.phone || 'number hidden'}). Reply in the customer's language, keep it short and natural, and do not use markdown headings. If no reply is needed (for example just "ok" or "thanks"), output exactly [NO_REPLY].`;
     const text = await callAI(cfg, system, msgs);
     return !text || /^\[NO_REPLY\]/i.test(text) ? null : text;
 }
@@ -297,7 +356,7 @@ async function runAgent(name, jid, send) {
     const last = [...(wa.msgs.get(jid) || [])].reverse().find(m => !m.fromMe);
     const d = {
         id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
-        jid, name: view(name, wa, jid).name,
+        jid, name: view(name, wa, jid).name, phone: view(name, wa, jid).phone,
         inbound: last ? (last.text || `[${last.kind}]`) : '',
         text, ts: Math.floor(Date.now() / 1000)
     };
@@ -358,7 +417,7 @@ function routes(app, context) {
         const limit = Math.min(parseInt(req.query.limit) || 60, 200);
         const out = [];
         for (const [jid, list] of wa.msgs) {
-            for (const m of list.slice(-8)) if (!m.fromMe) out.push({ ...m, name: view(name, wa, jid).name, aiOff: wa.agent.disabledChats.includes(jid) });
+            for (const m of list.slice(-8)) if (!m.fromMe) out.push({ ...m, name: view(name, wa, jid).name, phone: view(name, wa, jid).phone, aiOff: wa.agent.disabledChats.includes(jid) });
         }
         out.sort((a, b) => b.ts - a.ts);
         res.json(out.slice(0, limit));
