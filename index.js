@@ -1,4 +1,19 @@
 const express = require('express');
+// 1. top of file, with the other requires
+const waStore = require('./wa-store');
+
+// 2. in startBaileys(), right after: sessionData.sock = sock;
+waStore.attach(sessionName, sock, sessionData);
+
+// 3. before app.listen(...)
+waStore.routes(app, { sessions, getOrInitSession, upload, sessionsDir, addLog });
+
+// 4. with your other page routes
+app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
+app.get('/incoming', (req, res) => res.sendFile(path.join(__dirname, 'public', 'incoming.html')));
+
+
+
 const { 
     default: makeWASocket, 
     useMultiFileAuthState, 
