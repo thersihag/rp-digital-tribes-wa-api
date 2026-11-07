@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI Agent · RP Digital Trend</title>
+<style>
+:root{--bg:#0b141a;--panel:#111b21;--card:#202c33;--card2:#2a3942;--line:#2a3942;--text:#e9edef;--sub:#8696a0;--accent:#00a884;--ok:#25d366;--warn:#f0b429;--bad:#f15c6d;--out:#005c4b}
+@media (prefers-color-scheme:light){:root{--bg:#efeae2;--panel:#fff;--card:#fff;--card2:#f0f2f5;--line:#e1e4e6;--text:#111b21;--sub:#667781;--out:#d9fdd3}}
+*{box-sizing:border-box;margin:0}
+body{font:14px/1.45 "Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text)}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+header{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--card);position:sticky;top:0;z-index:3;flex-wrap:wrap}
+header h1{font-size:18px;font-weight:600;flex:1;min-width:160px}
+select,input[type=text],input[type=password],input[type=number],textarea{background:var(--card2);border:1px solid transparent;border-radius:8px;padding:8px 10px;width:100%}
+header select{width:auto}
+.btn{background:var(--card2);border:0;border-radius:8px;padding:8px 14px;cursor:pointer;text-decoration:none;display:inline-block}
+.btn:hover{filter:brightness(1.12)}
+.btn.p{background:var(--accent);color:#fff}
+.btn.d{color:var(--bad)}
+.btn:disabled{opacity:.5;cursor:default}
+.wrap{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:16px;padding:16px 20px;max-width:1400px;margin:0 auto;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h2{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h2 .n{background:var(--accent);color:#fff;border-radius:10px;padding:0 8px;font-size:12px}
+label{display:block;color:var(--sub);font-size:12.5px;margin:12px 0 4px}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:var(--card2);border-radius:10px}
+.sw input{width:42px;height:24px;accent-color:var(--accent)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.seg label{margin:0;padding:10px;background:var(--card2);border-radius:8px;cursor:pointer;color:var(--text);border:1px solid transparent}
+.seg input{display:none}
+.seg input:checked+span{color:var(--ok);font-weight:600}
+.seg label:has(input:checked){border-color:var(--accent)}
+.seg small{display:block;color:var(--sub);font-size:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.col{display:flex;flex-direction:column;gap:16px}
+.draft,.item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
+.draft .in{border-left:3px solid var(--sub);padding-left:8px;color:var(--sub);margin:6px 0 8px;font-size:13px;white-space:pre-wrap}
+.draft textarea{min-height:76px;resize:vertical;background:var(--out)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.hd{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.hd b{font-weight:600}.hd small{color:var(--sub)}
+.item .tx{margin:4px 0 6px;white-space:pre-wrap;overflow-wrap:anywhere}
+.ctx{margin-top:8px;padding:10px;background:var(--bg);border-radius:8px;max-height:260px;overflow:auto;display:none}
+.ctx.on{display:block}
+.b{max-width:80%;padding:5px 9px;border-radius:8px;margin:3px 0;background:var(--card2);white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}
+.b.me{margin-left:auto;background:var(--out)}
+.b small{display:block;color:var(--sub);font-size:11px;text-align:right}
+.tag{font-size:11.5px;padding:2px 8px;border-radius:10px;background:var(--card2);color:var(--sub)}
+.tag.on{color:var(--ok)}.tag.off{color:var(--warn)}
+.muted{color:var(--sub);padding:14px 4px}
+.note{font-size:12.5px;color:var(--sub);margin-top:10px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#323b41;color:#fff;padding:10px 18px;border-radius:10px;display:none;z-index:9;max-width:90vw}
+@media (max-width:900px){.wrap{grid-template-columns:1fr;padding:12px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>AI Agent · incoming messages</h1>
+  <span class="tag" id="state">…</span>
+  <select id="sess" aria-label="WhatsApp session"></select>
+  <a class="btn" id="toDash" href="/dashboard.html">Open chats</a>
+</header>
+
+<div class="wrap">
+  <section class="card">
+    <h2>Agent settings</h2>
+    <div class="sw"><span><b>AI agent</b><br><small style="color:var(--sub)">Reads each new message and the recent chat, then replies.</small></span><input type="checkbox" id="enabled" role="switch"></div>
+
+    <label>When the AI has a reply</label>
+    <div class="seg">
+      <label><input type="radio" name="mode" value="draft"><span>Ask me first</span><small>Reply waits in the approval list</small></label>
+      <label><input type="radio" name="mode" value="auto"><span>Send automatically</span><small>Sends after a short typing delay</small></label>
+    </div>
+
+    <div class="two">
+      <div><label for="provider">Provider</label><select id="provider"><option value="anthropic">Anthropic (Claude)</option><option value="openai">OpenAI-compatible</option></select></div>
+      <div><label for="model">Model</label><input type="text" id="model" autocomplete="off"></div>
+    </div>
+    <div id="baseWrap" style="display:none"><label for="baseUrl">API base URL</label><input type="text" id="baseUrl" placeholder="https://api.openai.com/v1"></div>
+    <label for="apiKey">API key</label>
+    <input type="password" id="apiKey" autocomplete="new-password" placeholder="Not set">
+    <label for="prompt">Instructions for the agent</label>
+    <textarea id="prompt" rows="7"></textarea>
+    <div class="two">
+      <div><label for="ctxN">Messages it reads per chat</label><input type="number" id="ctxN" min="1" max="60"></div>
+      <div><label for="delay">Wait before replying (sec)</label><input type="number" id="delay" min="1" max="120"></div>
+    </div>
+    <label style="display:flex;gap:8px;align-items:center;color:var(--text)"><input type="checkbox" id="noGroups" style="width:auto"> Ignore group chats</label>
+    <div class="row"><button class="btn p" id="save">Save settings</button><button class="btn" id="test">Test AI connection</button></div>
+    <p class="note">The API key is stored on your server (sessions/&lt;name&gt;/agent.json) and is never sent back to this page.</p>
+  </section>
+
+  <div class="col">
+    <section class="card">
+      <h2>Replies waiting for approval <span class="n" id="dn">0</span></h2>
+      <div id="drafts"></div>
+    </section>
+    <section class="card">
+      <h2>Incoming messages <span class="tag on">live</span></h2>
+      <div id="feed"></div>
+    </section>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+let SESSION=new URLSearchParams(location.search).get('session')||localStorage.getItem('wa_session')||'default';
+let cfg={},drafts=[],feed=[];
+const TZ={timeZone:'Asia/Kolkata'};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hm=t=>new Date(t*1000).toLocaleString('en-IN',{...TZ,day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
+const ICON={image:'📷 Photo',video:'🎥 Video',audio:'🎤 Voice message',sticker:'Sticker',document:'📄 Document',location:'📍 Location',contact:'👤 Contact',other:'Message'};
+const show=m=>m.kind==='text'?m.text:(ICON[m.kind]||'Message')+(m.text?' — '+m.text:'');
+async function api(p,o){const r=await fetch(p,o);const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||r.statusText);return j}
+const post=(p,b)=>api(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',3500)}
+async function busy(btn,fn){const t=btn.textContent;btn.disabled=true;btn.textContent='Working…';try{await fn()}catch(e){toast(e.message)}btn.disabled=false;btn.textContent=t}
+
+/* ---------- settings ---------- */
+function fillCfg(){
+  $('#enabled').checked=cfg.enabled;
+  document.querySelectorAll('input[name=mode]').forEach(r=>r.checked=r.value===cfg.mode);
+  $('#provider').value=cfg.provider;$('#model').value=cfg.model;$('#baseUrl').value=cfg.baseUrl||'';
+  $('#apiKey').value='';$('#apiKey').placeholder=cfg.hasKey?cfg.apiKey+' (saved — leave blank to keep)':'Not set';
+  $('#prompt').value=cfg.systemPrompt;$('#ctxN').value=cfg.contextLimit;$('#delay').value=cfg.delaySec;$('#noGroups').checked=cfg.ignoreGroups;
+  $('#baseWrap').style.display=cfg.provider==='openai'?'block':'none';
+  const s=$('#state');s.className='tag '+(cfg.enabled?'on':'off');
+  s.textContent=!cfg.enabled?'Agent off':cfg.mode==='auto'?'Agent on · auto-send':'Agent on · asks first';
+}
+$('#provider').onchange=e=>{$('#baseWrap').style.display=e.target.value==='openai'?'block':'none';if(e.target.value==='openai'&&/^claude/.test($('#model').value))$('#model').value='gpt-4o-mini';if(e.target.value==='anthropic'&&!/^claude/.test($('#model').value))$('#model').value='claude-sonnet-5-5'};
+function collect(){
+  return{enabled:$('#enabled').checked,mode:document.querySelector('input[name=mode]:checked')?.value||'draft',provider:$('#provider').value,model:$('#model').value,baseUrl:$('#baseUrl').value,apiKey:$('#apiKey').value,systemPrompt:$('#prompt').value,contextLimit:$('#ctxN').value,delaySec:$('#delay').value,ignoreGroups:$('#noGroups').checked};
+}
+$('#save').onclick=e=>busy(e.target,async()=>{cfg=await post(`/api/agent/${SESSION}/config`,collect());fillCfg();toast('Settings saved')});
+$('#test').onclick=e=>busy(e.target,async()=>{await post(`/api/agent/${SESSION}/config`,collect());const r=await post(`/api/agent/${SESSION}/test`,{});toast('AI connected — it answered: '+r.text)});
+$('#enabled').onchange=async()=>{try{cfg=await post(`/api/agent/${SESSION}/config`,{enabled:$('#enabled').checked});fillCfg();if(cfg.enabled&&!cfg.hasKey)toast('Add an API key so the agent can reply')}catch(e){toast(e.message)}};
+
+/* ---------- approval list ---------- */
+function renderDrafts(){
+  $('#dn').textContent=drafts.length;
+  $('#drafts').innerHTML=drafts.length?drafts.map(d=>`<div class="draft" data-id="${d.id}" data-j="${esc(d.jid)}"><div class="hd"><b>${esc(d.name)}</b><small>${hm(d.ts)}</small></div><div class="in">${esc(d.inbound)}</div><textarea aria-label="Reply to ${esc(d.name)}">${esc(d.text)}</textarea><div class="row"><button class="btn p" data-a="send">Send reply</button><button class="btn" data-a="regen">Write again</button><a class="btn" href="/dashboard.html?session=${SESSION}&jid=${encodeURIComponent(d.jid)}">Open chat</a><button class="btn d" data-a="drop">Discard</button></div></div>`).join(''):`<div class="muted">Nothing waiting. When the agent writes a reply in “Ask me first” mode, it appears here.</div>`;
+}
+$('#drafts').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-a]');if(!b)return;
+  const el=b.closest('.draft'),id=el.dataset.id,jid=el.dataset.j;
+  if(b.dataset.a==='send')busy(b,async()=>{await post(`/api/agent/${SESSION}/drafts/${id}/approve`,{text:el.querySelector('textarea').value});drafts=drafts.filter(d=>d.id!==id);renderDrafts();toast('Reply sent')});
+  if(b.dataset.a==='drop')busy(b,async()=>{await api(`/api/agent/${SESSION}/drafts/${id}`,{method:'DELETE'});drafts=drafts.filter(d=>d.id!==id);renderDrafts()});
+  if(b.dataset.a==='regen')busy(b,async()=>{const r=await post(`/api/agent/${SESSION}/suggest`,{jid,asDraft:true});if(r.draft){drafts=drafts.filter(d=>d.jid!==jid&&d.id!==id);drafts.push(r.draft);renderDrafts()}});
+});
+
+/* ---------- incoming feed ---------- */
+function renderFeed(){
+  $('#feed').innerHTML=feed.length?feed.map(m=>`<div class="item" data-j="${esc(m.jid)}" data-id="${esc(m.id)}"><div class="hd"><b>${esc(m.name)}${m.sender?' · '+esc(m.sender):''}</b><small>${hm(m.ts)}</small></div><div class="tx">${esc(show(m))}</div><div class="row" style="margin-top:0"><button class="btn" data-a="ctx">What the AI reads</button><button class="btn" data-a="draft">Write AI reply</button><button class="btn" data-a="ai"><span>${m.aiOff?'AI paused':'AI active'}</span></button><a class="btn" href="/dashboard.html?session=${SESSION}&jid=${encodeURIComponent(m.jid)}">Open chat</a></div><div class="ctx"></div></div>`).join(''):`<div class="muted">No incoming messages yet. They show up here the moment someone writes to this number.</div>`;
+}
+$('#feed').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-a]');if(!b)return;
+  const el=b.closest('.item'),jid=el.dataset.j,box=el.querySelector('.ctx');
+  if(b.dataset.a==='ctx'){
+    if(box.classList.toggle('on')&&!box.dataset.l){
+      box.textContent='Loading…';
+      api(`/api/wa/${SESSION}/messages/${encodeURIComponent(jid)}?limit=${cfg.contextLimit||20}`).then(d=>{box.dataset.l=1;box.innerHTML=d.messages.map(m=>`<div class="b ${m.fromMe?'me':''}">${esc(show(m))}<small>${m.fromMe?'You':'Customer'} · ${hm(m.ts)}</small></div>`).join('')||'No messages stored.'}).catch(x=>box.textContent=x.message);
+    }
+  }
+  if(b.dataset.a==='draft')busy(b,async()=>{const r=await post(`/api/agent/${SESSION}/suggest`,{jid,asDraft:true});if(r.draft){drafts=drafts.filter(d=>d.jid!==jid);drafts.push(r.draft);renderDrafts();toast('Reply drafted — review it above')}});
+  if(b.dataset.a==='ai')post(`/api/agent/${SESSION}/config`,{toggleChat:jid}).then(()=>{feed.forEach(m=>{if(m.jid===jid)m.aiOff=!m.aiOff});renderFeed()}).catch(x=>toast(x.message));
+});
+
+/* ---------- live ---------- */
+let es;
+function connect(){
+  if(es)es.close();
+  es=new EventSource(`/api/wa/${SESSION}/events`);
+  es.addEventListener('message',e=>{
+    const {msg,chat}=JSON.parse(e.data);
+    if(msg.fromMe)return;
+    feed=[{...msg,name:chat.name,aiOff:chat.aiOff},...feed.filter(x=>x.id!==msg.id)].slice(0,80);renderFeed();
+  });
+  es.addEventListener('draft',e=>{const d=JSON.parse(e.data);drafts=drafts.filter(x=>x.jid!==d.jid&&x.id!==d.id);drafts.push(d);renderDrafts()});
+  es.addEventListener('draftRemoved',e=>{const {jid}=JSON.parse(e.data);drafts=drafts.filter(x=>x.jid!==jid);renderDrafts()});
+}
+
+(async()=>{
+  localStorage.setItem('wa_session',SESSION);
+  $('#toDash').href='/dashboard.html?session='+encodeURIComponent(SESSION);
+  try{const l=await api('/api/sessions');if(!l.some(s=>s.name===SESSION))l.push({name:SESSION});$('#sess').innerHTML=l.map(s=>`<option ${s.name===SESSION?'selected':''}>${esc(s.name)}</option>`).join('')}catch(e){}
+  $('#sess').onchange=e=>{localStorage.setItem('wa_session',e.target.value);location.href='/incoming.html?session='+encodeURIComponent(e.target.value)};
+  try{
+    [cfg,drafts,feed]=await Promise.all([api(`/api/agent/${SESSION}/config`),api(`/api/agent/${SESSION}/drafts`),api(`/api/wa/${SESSION}/incoming?limit=60`)]);
+    fillCfg();renderDrafts();renderFeed();
+  }catch(e){toast(e.message)}
+  connect();
+})();
+</script>
+</body>
+</html>
