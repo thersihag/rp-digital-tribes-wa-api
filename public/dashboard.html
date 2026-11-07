@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chats · RP Digital Trend</title>
+<style>
+:root{--bg:#111b21;--panel:#202c33;--panel2:#2a3942;--hover:#2a3942;--line:#222d34;--text:#e9edef;--sub:#8696a0;--out:#005c4b;--in:#202c33;--accent:#00a884;--blue:#53bdeb;--wall:#0b141a;--danger:#f15c6d}
+@media (prefers-color-scheme:light){:root{--bg:#fff;--panel:#f0f2f5;--panel2:#e9edef;--hover:#f5f6f6;--line:#e9edef;--text:#111b21;--sub:#667781;--out:#d9fdd3;--in:#fff;--wall:#efeae2}}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font:14px/1.4 "Segoe UI",Helvetica,Arial,sans-serif;background:var(--wall);color:var(--text);overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.app{display:flex;height:100%;max-width:1600px;margin:0 auto;background:var(--bg)}
+.side{width:30%;min-width:320px;max-width:460px;display:flex;flex-direction:column;border-right:1px solid var(--line)}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--wall);position:relative}
+.bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--panel);min-height:60px}
+.bar h1{font-size:17px;font-weight:600;flex:1}
+.ib{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--sub);font-size:18px}
+.ib:hover{background:var(--hover)}
+select{background:var(--panel2);color:var(--text);border:0;border-radius:8px;padding:6px 8px;font:inherit;max-width:150px}
+.banner{background:#7a5c00;color:#fff;padding:8px 14px;font-size:13px;display:none}
+.banner a{color:#fff;font-weight:600}
+.search{padding:8px 12px;border-bottom:1px solid var(--line)}
+.search input{width:100%;background:var(--panel);border:0;border-radius:8px;padding:9px 12px;color:var(--text);font:inherit}
+.tabs{display:flex;gap:6px;padding:8px 12px}
+.tabs button{padding:5px 12px;border-radius:16px;background:var(--panel);color:var(--sub)}
+.tabs button.on{background:#0a332c;color:#25d366}
+@media (prefers-color-scheme:light){.tabs button.on{background:#d9fdd3;color:#025144}}
+.list{flex:1;overflow-y:auto}
+.row{display:flex;gap:12px;padding:0 14px;cursor:pointer;align-items:center}
+.row:hover,.row.on{background:var(--hover)}
+.row .mid{flex:1;min-width:0;padding:12px 0;border-bottom:1px solid var(--line)}
+.row .top,.row .bot{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.row .nm{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .tm{font-size:12px;color:var(--sub);flex:none}
+.row .tm.u{color:#25d366}
+.row .pv{color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+.badge{background:#25d366;color:#0b141a;border-radius:11px;min-width:20px;height:20px;padding:0 6px;font-size:12px;font-weight:600;display:grid;place-items:center;flex:none}
+.av{width:49px;height:49px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:19px;color:#fff;position:relative;overflow:hidden;text-transform:uppercase}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.empty{margin:auto;text-align:center;color:var(--sub);padding:30px;max-width:420px}
+.empty h2{color:var(--text);font-weight:300;font-size:30px;margin-bottom:10px}
+.head{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--panel);min-height:60px}
+.head .av{width:40px;height:40px;font-size:16px}
+.head .t{flex:1;min-width:0}
+.head .t b{display:block;font-weight:500;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.head .t small{color:var(--sub)}
+.pill{font-size:12px;padding:4px 10px;border-radius:14px;background:var(--panel2);color:var(--sub)}
+.pill.on{background:#0a332c;color:#25d366}
+.back{display:none}
+.msgs{flex:1;overflow-y:auto;padding:14px 7%;display:flex;flex-direction:column;gap:2px;background-image:radial-gradient(rgba(134,150,160,.10) 1px,transparent 1px);background-size:22px 22px}
+.day{align-self:center;background:var(--panel);color:var(--sub);font-size:12.5px;padding:5px 12px;border-radius:8px;margin:10px 0}
+.m{max-width:min(65%,520px);padding:6px 8px 6px 9px;border-radius:8px;background:var(--in);position:relative;word-wrap:break-word;overflow-wrap:anywhere;box-shadow:0 1px .5px rgba(0,0,0,.18)}
+.m.me{align-self:flex-end;background:var(--out)}
+.m .who{font-size:12.5px;font-weight:600;color:#53bdeb;margin-bottom:2px}
+.m .meta{float:right;margin:6px 0 -3px 12px;font-size:11px;color:var(--sub);display:flex;gap:3px;align-items:center}
+.m.me .meta{color:rgba(233,237,239,.65)}
+@media (prefers-color-scheme:light){.m.me .meta{color:#667781}}
+.tk.r{color:var(--blue)}
+.m img.pic{display:block;max-width:100%;max-height:320px;border-radius:6px;margin-bottom:4px;cursor:zoom-in}
+.m img.stk{width:150px;background:none}
+.m video{max-width:100%;max-height:320px;border-radius:6px;display:block;margin-bottom:4px}
+.m audio{max-width:100%;height:36px}
+.m a{color:var(--blue)}
+.doc{display:flex;gap:8px;align-items:center;background:rgba(0,0,0,.16);border-radius:6px;padding:8px 10px;margin-bottom:4px;color:inherit!important;text-decoration:none}
+.ph{color:var(--sub);font-style:italic}
+.comp{display:flex;align-items:flex-end;gap:8px;padding:10px 14px;background:var(--panel)}
+.comp textarea{flex:1;resize:none;max-height:140px;background:var(--panel2);border:0;border-radius:10px;padding:10px 14px;color:var(--text);font:inherit;line-height:1.35}
+.send{background:var(--accent);color:#fff;width:42px;height:42px;border-radius:50%;font-size:18px;flex:none}
+.send:disabled{opacity:.5}
+.chip{display:none;align-items:center;gap:8px;padding:6px 14px;background:var(--panel);color:var(--sub);border-top:1px solid var(--line)}
+.chip.on{display:flex}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#323b41;color:#fff;padding:10px 18px;border-radius:10px;z-index:9;display:none;max-width:90vw}
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;place-items:center;z-index:10;cursor:zoom-out}
+.lb img{max-width:94vw;max-height:94vh}
+@media (max-width:760px){
+ .side{width:100%;max-width:none;min-width:0}
+ .main{position:fixed;inset:0;transform:translateX(100%);transition:transform .2s;z-index:5}
+ .app.open .main{transform:none}
+ .back{display:grid}
+ .msgs{padding:12px 10px}.m{max-width:85%}
+}
+@media (prefers-reduced-motion:reduce){.main{transition:none}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="side">
+    <div class="bar">
+      <h1>Chats</h1>
+      <select id="sess" aria-label="WhatsApp session"></select>
+      <button class="ib" id="newChat" title="New chat" aria-label="New chat">✎</button>
+      <a class="ib" href="/incoming.html" title="AI agent" aria-label="AI agent" style="text-decoration:none">🤖</a>
+    </div>
+    <div class="banner" id="banner"></div>
+    <div class="search"><input id="q" placeholder="Search or start a new chat" aria-label="Search chats"></div>
+    <div class="tabs" id="tabs"><button data-f="all" class="on">All</button><button data-f="unread">Unread</button><button data-f="groups">Groups</button></div>
+    <div class="list" id="list"></div>
+  </aside>
+
+  <section class="main" id="main">
+    <div class="empty" id="blank">
+      <h2>RP Digital Trend</h2>
+      <p>Select a chat to read and reply. New messages appear here live. Send and receive from the same number you linked by QR.</p>
+    </div>
+    <div id="chat" style="display:none;flex-direction:column;height:100%">
+      <div class="head">
+        <button class="ib back" id="back" aria-label="Back to chats">←</button>
+        <div id="hav"></div>
+        <div class="t"><b id="hname"></b><small id="hsub"></small></div>
+        <button class="pill" id="aiBtn" title="Toggle AI agent for this chat">🤖 AI</button>
+      </div>
+      <div class="msgs" id="msgs"></div>
+      <div class="chip" id="chip"><span id="chipName" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span><button id="chipX" aria-label="Remove attachment">✕</button></div>
+      <div class="comp">
+        <button class="ib" id="attach" title="Attach" aria-label="Attach file">📎</button>
+        <input type="file" id="file" hidden>
+        <button class="ib" id="suggest" title="Ask AI to suggest a reply" aria-label="Suggest reply">✨</button>
+        <textarea id="txt" rows="1" placeholder="Type a message" aria-label="Message"></textarea>
+        <button class="send" id="send" aria-label="Send">➤</button>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<div class="lb" id="lb"><img alt=""></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const qs=new URLSearchParams(location.search);
+let SESSION=qs.get('session')||localStorage.getItem('wa_session')||'default';
+let chats=new Map(),cur=null,msgs=[],filter='all',es=null,file=null;
+const TZ={timeZone:'Asia/Kolkata'};
+
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=t=>esc(t).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>').replace(/\*([^*\n]+)\*/g,'<b>$1</b>').replace(/(^|\s)_([^_\n]+)_/g,'$1<i>$2</i>').replace(/~([^~\n]+)~/g,'<s>$1</s>').replace(/\n/g,'<br>');
+const hm=t=>new Date(t*1000).toLocaleTimeString('en-IN',{...TZ,hour:'2-digit',minute:'2-digit',hour12:true});
+const dk=t=>new Date(t*1000).toLocaleDateString('en-CA',TZ);
+const now=()=>Date.now()/1000;
+const dayLabel=t=>dk(t)===dk(now())?'Today':dk(t)===dk(now()-86400)?'Yesterday':new Date(t*1000).toLocaleDateString('en-IN',{...TZ,day:'numeric',month:'long',year:'numeric'});
+const listTime=t=>!t?'':dk(t)===dk(now())?hm(t):dk(t)===dk(now()-86400)?'Yesterday':new Date(t*1000).toLocaleDateString('en-IN',{...TZ,day:'2-digit',month:'2-digit',year:'2-digit'});
+const tick=s=>s==null?'':s<=1?'<span class="tk">🕓</span>':s===2?'<span class="tk">✓</span>':s===3?'<span class="tk">✓✓</span>':'<span class="tk r">✓✓</span>';
+const ICON={image:'📷 Photo',video:'🎥 Video',audio:'🎤 Voice message',sticker:'Sticker',document:'📄 Document',location:'📍 Location',contact:'👤 Contact',other:'Message'};
+const preview=l=>!l?'':(l.fromMe?'You: ':'')+(l.kind==='text'?l.text:(ICON[l.kind]||'Message')+(l.text?' '+l.text:''));
+const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return h};
+
+async function api(p,o){const r=await fetch(p,o);const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||r.statusText);return j}
+const post=(p,b)=>api(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',3500)}
+
+function avatar(c){
+  const i=c.isGroup?'👥':(c.name.replace(/[^\p{L}\p{N}]/gu,'')[0]||'#');
+  return `<div class="av" style="background:hsl(${hue(c.jid)} 35% 38%)">${esc(i)}<img loading="lazy" alt="" src="/api/wa/${SESSION}/avatar/${encodeURIComponent(c.jid)}" onerror="this.remove()"></div>`;
+}
+
+/* ---------- chat list ---------- */
+function renderList(){
+  const q=$('#q').value.trim().toLowerCase();
+  const arr=[...chats.values()].filter(c=>{
+    if(filter==='unread'&&!c.unread)return false;
+    if(filter==='groups'&&!c.isGroup)return false;
+    return !q||c.name.toLowerCase().includes(q)||c.number.includes(q)||(c.last?.text||'').toLowerCase().includes(q);
+  }).sort((a,b)=>b.ts-a.ts);
+  $('#list').innerHTML=arr.length?arr.map(c=>`<div class="row ${c.jid===cur?'on':''}" data-j="${esc(c.jid)}" tabindex="0">${avatar(c)}<div class="mid"><div class="top"><span class="nm">${esc(c.name)}</span><span class="tm ${c.unread?'u':''}">${listTime(c.ts)}</span></div><div class="bot"><span class="pv">${esc(preview(c.last))}</span>${c.unread?`<span class="badge">${c.unread}</span>`:''}</div></div></div>`).join(''):`<div class="empty"><p>${q?'No chats match your search.':'No chats yet. New messages will appear here, or press ✎ to message a number.'}</p></div>`;
+}
+$('#list').addEventListener('click',e=>{const r=e.target.closest('.row');if(r)openChat(r.dataset.j)});
+$('#list').addEventListener('keydown',e=>{if(e.key==='Enter'){const r=e.target.closest('.row');if(r)openChat(r.dataset.j)}});
+$('#q').oninput=renderList;
+$('#tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;filter=b.dataset.f;[...$('#tabs').children].forEach(x=>x.classList.toggle('on',x===b));renderList()};
+
+/* ---------- messages ---------- */
+function body(m){
+  const u=`/api/wa/${SESSION}/media/${encodeURIComponent(m.jid)}/${encodeURIComponent(m.id)}`;
+  let h='';
+  if(m.kind==='image')h+=`<img class="pic" loading="lazy" src="${u}" alt="Photo" onerror="this.outerHTML='<div class=ph>📷 Photo unavailable</div>'">`;
+  else if(m.kind==='sticker')h+=`<img class="pic stk" loading="lazy" src="${u}" alt="Sticker" onerror="this.outerHTML='<div class=ph>Sticker</div>'">`;
+  else if(m.kind==='video')h+=`<video controls preload="none" src="${u}"></video>`;
+  else if(m.kind==='audio')h+=`<audio controls preload="none" src="${u}"></audio>`;
+  else if(m.kind==='document')h+=`<a class="doc" href="${u}" target="_blank" rel="noopener">📄 <span>${esc(m.fileName||'Document')}</span></a>`;
+  else if(m.kind==='location')h+=`<div>📍 Location</div>`;
+  else if(m.kind==='contact')h+=`<div>👤 Contact</div>`;
+  if(m.kind==='other')return `<span class="ph">${esc(m.text)}</span>`;
+  if(m.text)h+=`<span>${fmt(m.text)}</span>`;
+  return h;
+}
+function msgHtml(m,prev){
+  let h='';
+  if(!prev||dk(prev.ts)!==dk(m.ts))h+=`<div class="day">${dayLabel(m.ts)}</div>`;
+  h+=`<div class="m ${m.fromMe?'me':''}" data-id="${esc(m.id)}">${m.sender?`<div class="who">${esc(m.sender)}</div>`:''}${body(m)}<span class="meta">${hm(m.ts)}${m.fromMe?`<span class="st">${tick(m.status)}</span>`:''}</span></div>`;
+  return h;
+}
+function renderMsgs(){
+  $('#msgs').innerHTML=msgs.map((m,i)=>msgHtml(m,msgs[i-1])).join('');
+  $('#msgs').scrollTop=1e9;
+}
+function appendMsg(m){
+  if(msgs.some(x=>x.id===m.id))return;
+  const box=$('#msgs'),near=box.scrollHeight-box.scrollTop-box.clientHeight<160||m.fromMe;
+  box.insertAdjacentHTML('beforeend',msgHtml(m,msgs[msgs.length-1]));
+  msgs.push(m);
+  if(near)box.scrollTop=1e9;
+}
+
+async function openChat(jid){
+  cur=jid;
+  $('#app').classList.add('open');
+  $('#blank').style.display='none';$('#chat').style.display='flex';
+  try{
+    const d=await api(`/api/wa/${SESSION}/messages/${encodeURIComponent(jid)}?limit=150`);
+    if(cur!==jid)return;
+    msgs=d.messages;chats.set(jid,{...(chats.get(jid)||{}),...d.chat});
+    headFor(chats.get(jid));renderMsgs();
+  }catch(e){toast(e.message)}
+  const c=chats.get(jid);if(c&&c.unread){c.unread=0;post(`/api/wa/${SESSION}/read`,{jid}).catch(()=>{})}
+  renderList();$('#txt').focus();
+}
+function headFor(c){
+  $('#hav').innerHTML=avatar(c);$('#hname').textContent=c.name;
+  $('#hsub').textContent=c.isGroup?'Group':'+'+c.number;
+  const b=$('#aiBtn');b.textContent='🤖 AI '+(c.aiOff?'off':'on');b.classList.toggle('on',!c.aiOff);
+}
+$('#back').onclick=()=>{$('#app').classList.remove('open');cur=null;renderList()};
+$('#aiBtn').onclick=async()=>{
+  try{await post(`/api/agent/${SESSION}/config`,{toggleChat:cur});const c=chats.get(cur);c.aiOff=!c.aiOff;headFor(c);toast(c.aiOff?'AI agent paused for this chat':'AI agent active for this chat')}catch(e){toast(e.message)}
+};
+
+/* ---------- composer ---------- */
+const txt=$('#txt');
+txt.oninput=()=>{txt.style.height='auto';txt.style.height=Math.min(txt.scrollHeight,140)+'px'};
+txt.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}};
+$('#send').onclick=send;
+$('#attach').onclick=()=>$('#file').click();
+$('#file').onchange=e=>{file=e.target.files[0]||null;$('#chipName').textContent=file?'📎 '+file.name:'';$('#chip').classList.toggle('on',!!file)};
+$('#chipX').onclick=()=>{file=null;$('#file').value='';$('#chip').classList.remove('on')};
+async function send(){
+  const text=txt.value.trim();if(!cur||(!text&&!file))return;
+  const btn=$('#send');btn.disabled=true;
+  const fd=new FormData();fd.append('jid',cur);fd.append('text',text);if(file)fd.append('file',file);
+  try{
+    const r=await api(`/api/wa/${SESSION}/send`,{method:'POST',body:fd});
+    txt.value='';txt.style.height='auto';$('#chipX').click();
+    if(r.msg)appendMsg(r.msg);
+  }catch(e){toast(e.message)}
+  btn.disabled=false;txt.focus();
+}
+$('#suggest').onclick=async()=>{
+  const b=$('#suggest');b.textContent='…';
+  try{const r=await post(`/api/agent/${SESSION}/suggest`,{jid:cur});txt.value=r.text;txt.oninput();txt.focus()}catch(e){toast(e.message)}
+  b.textContent='✨';
+};
+
+/* ---------- new chat ---------- */
+$('#newChat').onclick=()=>{
+  const n=prompt('Enter phone number with country code (10 digits = India +91):');if(!n)return;
+  let d=n.replace(/\D/g,'');if(d.length<8)return toast('Enter a valid number');if(d.length===10)d='91'+d;
+  const jid=d+'@s.whatsapp.net';
+  if(!chats.has(jid))chats.set(jid,{jid,name:'+'+d,number:d,isGroup:false,unread:0,ts:now(),last:null});
+  renderList();openChat(jid);
+};
+
+/* ---------- lightbox ---------- */
+$('#msgs').addEventListener('click',e=>{if(e.target.matches('img.pic:not(.stk)')){const lb=$('#lb');lb.querySelector('img').src=e.target.src;lb.style.display='grid'}});
+$('#lb').onclick=()=>$('#lb').style.display='none';
+
+/* ---------- live updates ---------- */
+function connectSSE(){
+  if(es)es.close();
+  es=new EventSource(`/api/wa/${SESSION}/events`);
+  es.addEventListener('message',e=>{
+    const {msg,chat}=JSON.parse(e.data);
+    const old=chats.get(chat.jid);
+    if(msg.jid===cur){appendMsg(msg);if(!msg.fromMe){chat.unread=0;post(`/api/wa/${SESSION}/read`,{jid:cur}).catch(()=>{})}}
+    chats.set(chat.jid,{...old,...chat});
+    if(msg.jid===cur)headFor(chats.get(cur));
+    renderList();
+    if(!msg.fromMe&&msg.jid!==cur&&document.hidden)document.title='💬 New message · RP Digital Trend';
+  });
+  es.addEventListener('chat',e=>{const c=JSON.parse(e.data);chats.set(c.jid,{...chats.get(c.jid),...c});if(c.jid===cur)headFor(chats.get(cur));renderList()});
+  es.addEventListener('status',e=>{
+    const s=JSON.parse(e.data);const m=msgs.find(x=>x.id===s.id);if(m)m.status=s.status;
+    const el=document.querySelector(`.m[data-id="${CSS.escape(s.id)}"] .st`);if(el)el.innerHTML=tick(s.status);
+  });
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)document.title='Chats · RP Digital Trend'});
+
+/* ---------- session / status ---------- */
+async function loadSessions(){
+  try{
+    const l=await api('/api/sessions');
+    if(!l.some(s=>s.name===SESSION))l.push({name:SESSION});
+    $('#sess').innerHTML=l.map(s=>`<option ${s.name===SESSION?'selected':''}>${esc(s.name)}</option>`).join('');
+  }catch(e){}
+}
+$('#sess').onchange=e=>{localStorage.setItem('wa_session',e.target.value);location.href='/dashboard.html?session='+encodeURIComponent(e.target.value)};
+async function checkStatus(){
+  try{
+    const s=await api(`/api/status/${SESSION}`);const b=$('#banner');
+    if(s.status==='CONNECTED')b.style.display='none';
+    else{b.style.display='block';b.innerHTML=`Session “${esc(SESSION)}” is ${esc(s.status.toLowerCase())}. <a href="/api/qr-image/${SESSION}" target="_blank" rel="noopener">Open QR to log in</a>`}
+  }catch(e){}
+}
+async function loadChats(){
+  try{(await api(`/api/wa/${SESSION}/chats`)).forEach(c=>chats.set(c.jid,c));renderList()}catch(e){toast(e.message)}
+}
+(async()=>{
+  localStorage.setItem('wa_session',SESSION);
+  await loadSessions();await loadChats();connectSSE();checkStatus();setInterval(checkStatus,8000);
+  if(qs.get('jid'))openChat(qs.get('jid'));
+})();
+</script>
+</body>
+</html>
