@@ -37,8 +37,40 @@ if (!fs.existsSync(sessionsDir)) fs.mkdirSync(sessionsDir, { recursive: true });
 const upload = multer({ dest: 'uploads/' });
 
 // Global sessions map
-// Structure: [sessionName] -> { sock, status, qr, rawQr, logs: [], isSending: false, isConnecting: false, phoneNumber: null, reconnectTimer: null }
 const sessions = new Map();
+
+// =====================================================================
+// FIX 1: Sent-message cache.
+// Pehle getMessage har baar "RP Digital Trend Message" return karta tha,
+// isliye customer ko wahi placeholder dikhta tha.
+// Ab hum jo bhi message bhejte hain, usse yahan save karte hain, aur
+// WhatsApp retry maange to ASLI message wapas dete hain.
+// =====================================================================
+const sentCache = new Map();
+function cacheMsg(m) {
+    try {
+        if (m && m.key && m.key.id && m.message) {
+            sentCache.set(m.key.id, m.message);
+            if (sentCache.size > 5000) {
+                sentCache.delete(sentCache.keys().next().value);
+            }
+        }
+    } catch (e) {}
+}
+
+// FIX 2: Retry counter cache (Baileys decryption retries ke liye zaroori)
+const retryCounterCache = (() => {
+    const store = new Map();
+    return {
+        get: (k) => store.get(k),
+        set: (k, v) => {
+            store.set(k, v);
+            if (store.size > 5000) store.delete(store.keys().next().value);
+        },
+        del: (k) => store.delete(k),
+        flushAll: () => store.clear()
+    };
+})();
 
 function addLog(sessionName, message, type = 'info') {
     const session = sessions.get(sessionName);
@@ -172,8 +204,21 @@ async function startBaileys(sessionName) {
         defaultQueryTimeoutMs: 60000,
         keepAliveIntervalMs: 25000,
         retryRequestDelayMs: 2000,
-        getMessage: async () => ({ conversation: 'RP Digital Trend Message' })
+        msgRetryCounterCache: retryCounterCache,   // FIX 2
+        // FIX 1: placeholder hata diya. Ab asli bheja hua message wapas milta hai.
+        getMessage: async (key) => {
+            return sentCache.get(key.id) || undefined;
+        }
     });
+
+    // FIX 3: sock.sendMessage ko wrap karo taaki API, bulk, aur AI agent
+    // (waStore) se jaane wala har message cache ho jaye.
+    const origSend = sock.sendMessage.bind(sock);
+    sock.sendMessage = async (...args) => {
+        const sent = await origSend(...args);
+        cacheMsg(sent);
+        return sent;
+    };
 
     sessionData.sock = sock;
 
@@ -242,6 +287,11 @@ async function startBaileys(sessionName) {
 
     sock.ev.on('messages.upsert', async (m) => {
         try {
+            // FIX 3 (backup): jo bhi message hamare number se gaya (phone se bhi), cache karo
+            for (const mm of m.messages) {
+                if (mm.key && mm.key.fromMe) cacheMsg(mm);
+            }
+
             const msg = m.messages[0];
             if (!msg.key.fromMe && m.type === 'notify') {
                 const sender = msg.key.remoteJid.split('@')[0];
@@ -366,8 +416,14 @@ app.get('/api/logs/:sessionName', async (req, res) => {
     });
 });
 
-app.get('/api/send', async (req, res) => {
-    let { session = 'default', number, text, media } = req.query;
+// FIX 4: /api/send ab GET aur POST dono support karta hai,
+// aur text/message/body, number/to/jid sab naam samajhta hai.
+async function sendHandler(req, res) {
+    const p = Object.assign({}, req.query || {}, req.body || {});
+    const session = p.session || 'default';
+    const number = p.number || p.to || p.jid;
+    const text = p.text || p.message || p.body;
+    const media = p.media;
 
     if (!number || !text) {
         return res.status(400).json({ error: "Missing 'number' or 'text' query parameters." });
@@ -393,7 +449,9 @@ app.get('/api/send', async (req, res) => {
         addLog(session, `Failed API Message to +${number}: ${err.message}`, 'error');
         res.status(500).json({ error: err.message });
     }
-});
+}
+app.get('/api/send', sendHandler);
+app.post('/api/send', sendHandler);
 
 app.post('/api/send-bulk', upload.single('media'), async (req, res) => {
     const { session = 'default', numbers, message } = req.body;
