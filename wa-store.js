@@ -65,6 +65,43 @@ function learnLid(wa, lid, pn) {
     }
     const nm = wa.names.get(lid);
     if (nm && !wa.names.get(pn)) wa.names.set(pn, nm);
+    const lc = wa.counts[lid];
+    if (lc) {
+        const n = wa.counts[pn] || (wa.counts[pn] = { count: 0, first: lc.first, last: lc.last });
+        n.count += lc.count; n.first = Math.min(n.first, lc.first); n.last = Math.max(n.last, lc.last);
+        delete wa.counts[lid];
+    }
+}
+
+// Incoming log: one entry per received message + running count per sender
+function logInbound(wa, raw, p, jid) {
+    let from = jid;
+    if (isGroup(jid)) {
+        const k = raw.key;
+        from = (k.participantAlt && !isLid(k.participantAlt)) ? k.participantAlt : (k.participant || jid);
+        if (isLid(from) && wa.lidMap.get(from)) from = wa.lidMap.get(from);
+    }
+    if (raw.pushName && !wa.names.get(from)) wa.names.set(from, raw.pushName);
+    const c = wa.counts[from] || (wa.counts[from] = { count: 0, first: p.ts, last: p.ts });
+    c.count++; c.first = Math.min(c.first, p.ts); c.last = Math.max(c.last, p.ts);
+    wa.inbox.push({ id: p.id, from, jid, group: isGroup(jid), kind: p.kind, text: p.text, ts: p.ts });
+    if (wa.inbox.length > 3000) wa.inbox.splice(0, wa.inbox.length - 3000);
+}
+const istDay = ts => new Date(ts * 1000).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+function inboxEntry(wa, e) {
+    const from = wa.lidMap.get(e.from) || e.from;
+    return {
+        id: e.id,
+        number: isLid(from) ? '' : numOf(from),
+        phone: fmtPhone(from),
+        name: wa.names.get(from) || wa.names.get(e.from) || '',
+        group: e.group,
+        chat_jid: e.jid,
+        kind: e.kind,
+        text: e.text,
+        ts: e.ts,
+        time: new Date(e.ts * 1000).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true })
+    };
 }
 function resolveJid(wa, raw) {
     const k = raw.key, jid = k.remoteJid;
@@ -88,7 +125,7 @@ function init(name, s) {
     const dir = path.join(ctx.sessionsDir, name);
     const wa = {
         dir, chats: new Map(), msgs: new Map(), raw: new Map(), names: new Map(),
-        avatars: new Map(), lidMap: new Map(), clients: new Set(), timers: new Map(), groupFetching: new Set(),
+        avatars: new Map(), lidMap: new Map(), counts: {}, inbox: [], clients: new Set(), timers: new Map(), groupFetching: new Set(),
         drafts: [], agent: { ...DEFAULT_AGENT }, saveTimer: null
     };
     try {
@@ -97,6 +134,8 @@ function init(name, s) {
         Object.entries(d.msgs || {}).forEach(([j, l]) => wa.msgs.set(j, l));
         Object.entries(d.names || {}).forEach(([j, n]) => wa.names.set(j, n));
         Object.entries(d.lids || {}).forEach(([l, n]) => wa.lidMap.set(l, n));
+        wa.counts = d.counts || {};
+        wa.inbox = d.inbox || [];
     } catch (e) {}
     try { Object.assign(wa.agent, JSON.parse(fs.readFileSync(path.join(dir, 'agent.json'), 'utf8'))); } catch (e) {}
     s.wa = wa;
@@ -113,7 +152,9 @@ function scheduleSave(wa) {
                 chats: [...wa.chats.values()],
                 msgs: Object.fromEntries(wa.msgs),
                 names: Object.fromEntries(wa.names),
-                lids: Object.fromEntries(wa.lidMap)
+                lids: Object.fromEntries(wa.lidMap),
+                counts: wa.counts,
+                inbox: wa.inbox
             }));
         } catch (e) {}
     }, 3000);
@@ -181,6 +222,7 @@ function addMessage(name, wa, raw, opts = {}) {
     if (!p.fromMe) {
         if (raw.pushName && !isGroup(jid) && !wa.names.get(jid)) wa.names.set(jid, raw.pushName);
         if (live) c.unread = (c.unread || 0) + 1;
+        logInbound(wa, raw, p, jid);
     } else if (wa.drafts.some(d => d.jid === jid)) {
         wa.drafts = wa.drafts.filter(d => d.jid !== jid);
         emit(wa, 'draftRemoved', { jid });
@@ -501,6 +543,75 @@ function routes(app, context) {
         const ping = setInterval(() => { try { res.write(': ping\n\n'); } catch (e) {} }, 25000);
         req.on('close', () => { clearInterval(ping); wa.clients.delete(res); });
     });
+
+    /* ----- incoming log API ----- */
+    const filterInbox = (wa, q) => {
+        const want = String(q.number || '').replace(/\D/g, '');
+        const w10 = want.length > 10 ? want.slice(-10) : want;
+        const text = String(q.q || '').toLowerCase();
+        const since = parseInt(q.since) || 0;
+        let out = wa.inbox.map(e => inboxEntry(wa, e));
+        if (w10) out = out.filter(e => e.number && e.number.endsWith(w10));
+        if (q.kind) out = out.filter(e => e.kind === q.kind);
+        if (q.group === 'true') out = out.filter(e => e.group);
+        if (q.group === 'false') out = out.filter(e => !e.group);
+        if (since) out = out.filter(e => e.ts >= since);
+        if (text) out = out.filter(e => (e.text || '').toLowerCase().includes(text) || (e.name || '').toLowerCase().includes(text) || (e.number || '').includes(text));
+        return out.sort((a, b) => b.ts - a.ts);
+    };
+
+    // GET /api/incoming/:session?limit=100&offset=0&number=7015373621&q=text&kind=text&group=false&since=<unix>
+    app.get('/api/incoming/:s', wrap(async (req, res) => {
+        const { name, wa } = await sess(req);
+        const all = filterInbox(wa, req.query);
+        const limit = Math.min(parseInt(req.query.limit) || 100, 1000);
+        const offset = Math.max(parseInt(req.query.offset) || 0, 0);
+        res.json({ success: true, session: name, total: all.length, count: Math.min(limit, Math.max(all.length - offset, 0)), messages: all.slice(offset, offset + limit) });
+    }));
+
+    // GET /api/incoming/:session/summary  -> messages per number
+    app.get('/api/incoming/:s/summary', wrap(async (req, res) => {
+        const { name, wa } = await sess(req);
+        const lastBy = new Map();
+        for (const e of wa.inbox) {
+            const k = wa.lidMap.get(e.from) || e.from;
+            const o = lastBy.get(k);
+            if (!o || e.ts >= o.ts) lastBy.set(k, e);
+        }
+        const merged = new Map();
+        for (const [k0, c] of Object.entries(wa.counts)) {
+            const k = wa.lidMap.get(k0) || k0;
+            const m = merged.get(k) || { count: 0, first: c.first, last: c.last };
+            m.count += c.count; m.first = Math.min(m.first, c.first); m.last = Math.max(m.last, c.last);
+            merged.set(k, m);
+        }
+        const numbers = [...merged.entries()].map(([k, c]) => {
+            const le = lastBy.get(k);
+            return {
+                number: isLid(k) ? '' : numOf(k), phone: fmtPhone(k), name: wa.names.get(k) || '',
+                count: c.count, first_ts: c.first, last_ts: c.last,
+                last_text: le ? (le.text || `[${le.kind}]`) : ''
+            };
+        }).sort((a, b) => b.count - a.count || b.last_ts - a.last_ts);
+        const today = istDay(Date.now() / 1000);
+        res.json({
+            success: true, session: name,
+            total_messages: numbers.reduce((a, n) => a + n.count, 0),
+            total_numbers: numbers.length,
+            today_messages: wa.inbox.filter(e => istDay(e.ts) === today).length,
+            numbers
+        });
+    }));
+
+    // GET /api/incoming/:session/export.csv
+    app.get('/api/incoming/:s/export.csv', wrap(async (req, res) => {
+        const { name, wa } = await sess(req);
+        const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+        const rows = filterInbox(wa, req.query).map(e => [e.time, e.number, e.name, e.kind, e.group ? 'group' : 'private', e.text].map(q).join(','));
+        res.set('Content-Type', 'text/csv; charset=utf-8');
+        res.set('Content-Disposition', `attachment; filename="incoming-${name}.csv"`);
+        res.send('\ufefftime,number,name,type,chat,message\n' + rows.join('\n'));
+    }));
 
     /* ----- agent ----- */
     const publicCfg = cfg => ({ ...cfg, apiKey: cfg.apiKey ? '••••' + cfg.apiKey.slice(-4) : '', hasKey: !!cfg.apiKey });
