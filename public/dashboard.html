@@ -161,9 +161,9 @@ function renderList(){
   const arr=[...chats.values()].filter(c=>{
     if(filter==='unread'&&!c.unread)return false;
     if(filter==='groups'&&!c.isGroup)return false;
-    return !q||c.name.toLowerCase().includes(q)||c.number.includes(q)||(c.last?.text||'').toLowerCase().includes(q);
+    return !q||c.name.toLowerCase().includes(q)||(c.number||'').includes(q)||(c.phone||'').replace(/\s/g,'').includes(q.replace(/\s/g,''))||(c.last?.text||'').toLowerCase().includes(q);
   }).sort((a,b)=>b.ts-a.ts);
-  $('#list').innerHTML=arr.length?arr.map(c=>`<div class="row ${c.jid===cur?'on':''}" data-j="${esc(c.jid)}" tabindex="0">${avatar(c)}<div class="mid"><div class="top"><span class="nm">${esc(c.name)}</span><span class="tm ${c.unread?'u':''}">${listTime(c.ts)}</span></div><div class="bot"><span class="pv">${esc(preview(c.last))}</span>${c.unread?`<span class="badge">${c.unread}</span>`:''}</div></div></div>`).join(''):`<div class="empty"><p>${q?'No chats match your search.':'No chats yet. New messages will appear here, or press ✎ to message a number.'}</p></div>`;
+  $('#list').innerHTML=arr.length?arr.map(c=>`<div class="row ${c.jid===cur?'on':''}" data-j="${esc(c.jid)}" tabindex="0">${avatar(c)}<div class="mid"><div class="top"><span class="nm">${esc(c.name)}${c.phone&&c.phone!==c.name?` <small style="color:var(--sub);font-size:12px">${esc(c.phone)}</small>`:''}</span><span class="tm ${c.unread?'u':''}">${listTime(c.ts)}</span></div><div class="bot"><span class="pv">${esc(preview(c.last))}</span>${c.unread?`<span class="badge">${c.unread}</span>`:''}</div></div></div>`).join(''):`<div class="empty"><p>${q?'No chats match your search.':'No chats yet. New messages will appear here, or press ✎ to message a number.'}</p></div>`;
 }
 $('#list').addEventListener('click',e=>{const r=e.target.closest('.row');if(r)openChat(r.dataset.j)});
 $('#list').addEventListener('keydown',e=>{if(e.key==='Enter'){const r=e.target.closest('.row');if(r)openChat(r.dataset.j)}});
@@ -218,7 +218,7 @@ async function openChat(jid){
 }
 function headFor(c){
   $('#hav').innerHTML=avatar(c);$('#hname').textContent=c.name;
-  $('#hsub').textContent=c.isGroup?'Group':'+'+c.number;
+  $('#hsub').textContent=c.isGroup?'Group':(c.phone||'Number hidden by WhatsApp');
   const b=$('#aiBtn');b.textContent='🤖 AI '+(c.aiOff?'off':'on');b.classList.toggle('on',!c.aiOff);
 }
 $('#back').onclick=()=>{$('#app').classList.remove('open');cur=null;renderList()};
